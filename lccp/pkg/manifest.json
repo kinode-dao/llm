@@ -1,0 +1,15 @@
+[
+    {
+        "process_name": "lccp",
+        "process_wasm_path": "/lccp.wasm",
+        "on_exit": "Restart",
+        "request_networking": true,
+        "request_capabilities": [
+            "http_client:distro:sys"
+        ],
+        "grant_capabilities": [
+            "http_client:distro:sys"
+        ],
+        "public": true
+    }
+]

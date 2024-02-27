@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = [
+    "lccp/lccp",
+    "lccp/lccp_tester",
+    "openai/openai",
+    "openai/openai_tester",
+    "common_types"
+]
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+lto = true

@@ -1,0 +1,12 @@
+{
+    "lccp_tester.wasm": {
+        "root": false,
+        "public": false,
+        "request_networking": false,
+        "request_capabilities": [
+        ],
+        "grant_capabilities": [
+            "lccp:llm:kinode"
+        ]
+    }
+}
