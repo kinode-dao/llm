@@ -1,5 +1,5 @@
 use kinode_process_lib::{await_message, get_blob, call_init, println, Address, ProcessId, Request};
-use common_types::lccp::{ChatParams, EmbeddingParams, LLMRequest, LLMResponse};
+use common_types::lccp::{ChatRequest, EmbeddingRequest, LLMRequest, LLMResponse};
 use anyhow::Context;
 
 wit_bindgen::generate!({
@@ -48,7 +48,7 @@ fn send_request_and_validate_response<
 }
 
 fn test_embedding() -> anyhow::Result<()> {
-    let embedding_params = EmbeddingParams {
+    let embedding_params = EmbeddingRequest {
         content: PROMPT.to_string(),
         image_data: None,
     };
@@ -64,7 +64,7 @@ fn test_embedding() -> anyhow::Result<()> {
 }
 
 fn test_chat_non_streaming() -> anyhow::Result<()> {
-    let chat_params = ChatParams {
+    let chat_params = ChatRequest {
         prompt: PROMPT.to_string(),
         n_predict: Some(50),
         temperature: Some(0.0),
@@ -82,7 +82,7 @@ fn test_chat_non_streaming() -> anyhow::Result<()> {
 }
 
 fn _test_chat_streaming() -> anyhow::Result<()> {
-    let chat_params = ChatParams {
+    let chat_params = ChatRequest {
         prompt: PROMPT.to_string(),
         n_predict: Some(50),
         temperature: Some(0.0),

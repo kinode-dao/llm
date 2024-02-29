@@ -1,6 +1,6 @@
 use anyhow::Context;
 use common_types::lccp::{
-    ChatParams, ChatResponse, ChatStreamingResponse, EmbeddingParams, EmbeddingResponse,
+    ChatRequest, ChatResponse, ChatStreamingResponse, EmbeddingRequest, EmbeddingResponse,
     LLMRequest, LLMResponse,
 };
 use kinode_process_lib::{
@@ -128,19 +128,19 @@ fn send_request<T: serde::Serialize>(
 }
 
 
-fn handle_chat_request_non_streaming(chat_params: &ChatParams) -> anyhow::Result<()> {
+fn handle_chat_request_non_streaming(chat_params: &ChatRequest) -> anyhow::Result<()> {
     send_request(chat_params, "completion", CHAT_CONTEXT_NON_STREAMING)
 }
 
-fn handle_chat_request_streaming(chat_params: &ChatParams) -> anyhow::Result<()> {
+fn handle_chat_request_streaming(chat_params: &ChatRequest) -> anyhow::Result<()> {
     send_request(chat_params, "completion", CHAT_CONTEXT_STREAMING)
 }
 
-fn handle_embedding_request(embedding_params: &EmbeddingParams) -> anyhow::Result<()> {
+fn handle_embedding_request(embedding_params: &EmbeddingRequest) -> anyhow::Result<()> {
     send_request(embedding_params, "embedding", EMBEDDING_CONTEXT)
 }
 
-fn handle_chat_request(chat_params: &ChatParams) -> anyhow::Result<()> {
+fn handle_chat_request(chat_params: &ChatRequest) -> anyhow::Result<()> {
     if chat_params.stream.unwrap_or(false) {
         handle_chat_request_streaming(chat_params)
     } else {

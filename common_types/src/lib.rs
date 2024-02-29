@@ -4,8 +4,8 @@ pub mod lccp {
     use serde::Serialize;
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub enum LLMRequest {
-        Embedding(EmbeddingParams),
-        Chat(ChatParams),
+        Embedding(EmbeddingRequest),
+        Chat(ChatRequest),
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -42,7 +42,7 @@ pub mod lccp {
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-    pub struct EmbeddingParams {
+    pub struct EmbeddingRequest {
         pub content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub image_data: Option<Vec<ImageData>>, // Optional, since it's not always multimodal
@@ -61,7 +61,7 @@ pub mod lccp {
 
     // TODO: Zen: Dammit serde, do we really want to do the whole skip serializing thing?
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
-    pub struct ChatParams {
+    pub struct ChatRequest {
         pub prompt: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub temperature: Option<f64>,
