@@ -405,6 +405,12 @@ pub mod openai {
         pub usage: Usage,
     }
 
+    impl ChatResponse {
+        pub fn to_chat_response(&self) -> String {
+            self.choices[0].message.content.clone()
+        }
+    }
+
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct Choice {
         pub index: i32,
