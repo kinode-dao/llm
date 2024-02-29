@@ -125,7 +125,6 @@ fn handle_chat_request(chat_request: &ChatRequest) -> anyhow::Result<()> {
 }
 
 fn handle_message() -> anyhow::Result<()> {
-    println!("1");
     let message = await_message()?;
     if message.is_request() {
         let _ = handle_request(message.body());
