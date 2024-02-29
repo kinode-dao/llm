@@ -56,8 +56,8 @@ fn handle_chat_response_non_streaming() -> anyhow::Result<()> {
 }
 
 fn handle_request(body: &[u8]) -> anyhow::Result<()> {
-    let body_utf8 = String::from_utf8(body.to_vec()).expect("Failed to convert body to UTF-8 string");
-    println!("body utf is {}", body_utf8);
+    // let body_utf8 = String::from_utf8(body.to_vec()).expect("Failed to convert body to UTF-8 string");
+    // println!("body utf is {}", body_utf8);
     let request = LLMRequest::parse(body)?;
     match &request {
         LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
