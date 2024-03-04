@@ -150,6 +150,7 @@ fn handle_chat_request(chat_params: &ChatRequest) -> anyhow::Result<()> {
 
 fn handle_message() -> anyhow::Result<()> {
     let message = await_message()?;
+    println!("lccp: we received a message");
     if message.is_request() {
         let _ = handle_request(message.body());
     } else {
@@ -174,5 +175,3 @@ fn init(_our: Address) {
         };
     }
 }
-
-// TODO: Zen: Check out how we send these chatparams with message while just defaulting the fields we don't need

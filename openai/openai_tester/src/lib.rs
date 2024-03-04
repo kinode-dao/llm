@@ -110,5 +110,3 @@ fn run_test() -> anyhow::Result<()> {
     println!("Test took {}ms in total.", total_start.elapsed().as_millis());
     Ok(())
 }
-
-// TODO: Zen: Put in restart again in the manifest

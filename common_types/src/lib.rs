@@ -59,7 +59,6 @@ pub mod lccp {
         pub embedding: Vec<f32>,
     }
 
-    // TODO: Zen: Dammit serde, do we really want to do the whole skip serializing thing?
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct ChatRequest {
         pub prompt: String,
@@ -427,4 +426,3 @@ pub mod openai {
     }
 }
 
-// TODO: Zen: There are some common structs that can be moved out of the mod. There have to be.
