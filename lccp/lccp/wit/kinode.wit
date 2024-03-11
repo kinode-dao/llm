@@ -140,6 +140,9 @@ interface standard {
     // Saves the capabilities to persisted process state.
     save-capabilities: func(caps: list<capability>);
 
+    // Deletes the capabilities from persisted process state.
+    drop-capabilities: func(caps: list<capability>);
+
     // Gets all capabilities from persisted process state.
     our-capabilities: func() -> list<capability>;
 
