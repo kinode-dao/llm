@@ -43,7 +43,7 @@ TODO
 Run the tester script in your fakenode:
 
    ```bash
-   lccp_tester::llm:kinode
+lccp_tester:llm:kinode
    ```
 
 Within the tester, you can see how different requests and responses are handled.  
@@ -73,7 +73,7 @@ Run the tester script in your fakenode:
 ***Terminal 1*** Run the tester script
 
    ```bash
-   openai_tester::llm:kinode
+openai_tester:llm:kinode
    ```
 
 Within the tester, you can see how different requests and responses are handled.
