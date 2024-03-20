@@ -5,6 +5,8 @@ members = [
     "lccp/lccp_tester",
     "openai/openai",
     "openai/openai_tester",
+    "groq/groq",
+    "groq/groq_tester",
     "common_types"
 ]
 
