@@ -13,7 +13,6 @@ use std::{collections::HashMap, vec};
 const CHAT_CONTEXT_NON_STREAMING: u8 = 0;
 const EMBEDDING_CONTEXT: u8 = 2;
 
-pub const URL: &str = "https://api.groq.com/v1";
 
 wit_bindgen::generate!({
     path: "wit",

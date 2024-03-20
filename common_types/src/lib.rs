@@ -436,3 +436,59 @@ pub mod openai {
         pub embedding: Vec<f64>,
     }
 }
+
+pub mod groq {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub enum ChatCompletionRequest {
+        ChatCompletion(ChatCompletionParams),
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ChatCompletionParams {
+        pub model: String,
+        pub messages: Vec<Message>,
+        pub seed: Option<u32>,
+        pub temperature: Option<f64>,
+        pub max_tokens: Option<i32>,
+        pub top_p: Option<f64>,
+        pub stream: Option<bool>,
+        pub stop: Option<String>,
+    }
+
+    #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct Message {
+        pub role: String,
+        pub content: String,
+        pub name: Option<String>,
+    }
+
+    impl ChatCompletionRequest {
+        pub fn new_chat_completion_request(
+            model: String,
+            messages: Vec<Message>,
+            seed: Option<u32>,
+        ) -> Self {
+            let chat_completion_params = ChatCompletionParams {
+                model,
+                messages,
+                seed,
+                temperature: None,
+                max_tokens: None,
+                top_p: None,
+                stream: None,
+                stop: None,
+            };
+            ChatCompletionRequest::ChatCompletion(chat_completion_params)
+        }
+
+        pub fn to_bytes(&self) -> Vec<u8> {
+            serde_json::to_vec(self).unwrap()
+        }
+
+        pub fn parse(bytes: &[u8]) -> Result<ChatCompletionRequest, serde_json::Error> {
+            serde_json::from_slice::<ChatCompletionRequest>(bytes)
+        }
+    }
+}
