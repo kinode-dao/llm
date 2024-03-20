@@ -1,6 +1,6 @@
 use kinode_process_lib::{call_init, println, Address, ProcessId, Request};
 
-use common_types::openai::{ChatParams, ChatRequest, EmbeddingParams, EmbeddingRequest, LLMRequest, LLMResponse, Message};
+use common_types::openai::{ChatParams, ChatRequest, EmbeddingParams, EmbeddingRequest, LLMRequest, LLMResponse, Message, Provider};
 use kinode_process_lib::await_next_request_body;
 
 wit_bindgen::generate!({
@@ -78,6 +78,7 @@ fn test_chat(api_key: &str) -> anyhow::Result<()> {
     let chat_request = ChatRequest {
         params: chat_params,
         api_key: api_key.to_string(),
+        provider: Provider::OpenAi,
     };
     send_request_and_validate_response(LLMRequest::Chat(chat_request), 30, |response| {
         if let LLMResponse::Chat(chat_response) = response {

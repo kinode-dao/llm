@@ -254,6 +254,7 @@ pub mod openai {
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct EmbeddingRequest {
         pub api_key: String,
+        // TODO: A provider for embedding requests is not needed yet, as groq doesn't allow embedding requests. 
         pub params: EmbeddingParams,
     }
 
@@ -270,11 +271,11 @@ pub mod openai {
         pub params: ChatParams,
     }
 
-    // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-    // pub enum Provider {
-    //     OpenAi,
-    //     Groq,
-    // }
+    #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub enum Provider {
+        OpenAi,
+        Groq,
+    }
     impl Default for Provider {
         fn default() -> Self {
             Provider::OpenAi

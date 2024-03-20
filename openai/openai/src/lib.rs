@@ -1,6 +1,6 @@
 use anyhow::Context;
 use common_types::openai::{
-    ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest, LLMResponse, OpenAiEmbeddingResponse
+    ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest, LLMResponse, OpenAiEmbeddingResponse, Provider
 };
 use kinode_process_lib::{
     await_message, call_init, get_blob,
@@ -76,7 +76,7 @@ fn send_request<T: serde::Serialize>(
     let outgoing_request = OutgoingHttpRequest {
         method: "POST".to_string(),
         version: None,
-        url: format!("{}/{}", OPENAI_BASE_URL, endpoint),
+        url: endpoint.to_string(),
         headers: HashMap::from_iter(vec![
             ("Content-Type".to_string(), "application/json".to_string()),
             ("Authorization".to_string(), format!("Bearer {}", api_key)),
@@ -104,9 +104,13 @@ fn send_request<T: serde::Serialize>(
 }
 
 fn handle_chat_request_non_streaming(chat_request: &ChatRequest) -> anyhow::Result<()> {
+    let url = match chat_request.provider {
+        Provider::OpenAi => OPENAI_BASE_URL,
+        Provider::Groq => GROQ_BASE_URL,
+    };
     send_request(
         &chat_request.params,
-        "chat/completions",
+        &format!("{}/chat/completions", url),
         CHAT_CONTEXT_NON_STREAMING,
         &chat_request.api_key,
     )
