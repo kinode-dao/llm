@@ -240,11 +240,6 @@ pub mod openai {
     }
 
     impl LLMRequest {
-        pub fn new_chat_request(api_key: String, params: ChatParams) -> Self {
-            let chat_request = ChatRequest { api_key, params };
-            LLMRequest::Chat(chat_request)
-        }
-
         pub fn to_bytes(&self) -> Vec<u8> {
             match self {
                 LLMRequest::Chat(_) | LLMRequest::Embedding(_) => serde_json::to_vec(self).unwrap(),
@@ -271,7 +266,19 @@ pub mod openai {
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct ChatRequest {
         pub api_key: String,
+        pub provider: Provider,
         pub params: ChatParams,
+    }
+
+    // #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+    // pub enum Provider {
+    //     OpenAi,
+    //     Groq,
+    // }
+    impl Default for Provider {
+        fn default() -> Self {
+            Provider::OpenAi
+        }
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]

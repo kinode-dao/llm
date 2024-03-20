@@ -13,7 +13,8 @@ use std::{collections::HashMap, vec};
 const CHAT_CONTEXT_NON_STREAMING: u8 = 0;
 const EMBEDDING_CONTEXT: u8 = 2;
 
-pub const URL: &str = "https://api.openai.com/v1";
+pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
+pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
 
 wit_bindgen::generate!({
     path: "wit",
@@ -75,7 +76,7 @@ fn send_request<T: serde::Serialize>(
     let outgoing_request = OutgoingHttpRequest {
         method: "POST".to_string(),
         version: None,
-        url: format!("{}/{}", URL, endpoint),
+        url: format!("{}/{}", OPENAI_BASE_URL, endpoint),
         headers: HashMap::from_iter(vec![
             ("Content-Type".to_string(), "application/json".to_string()),
             ("Authorization".to_string(), format!("Bearer {}", api_key)),

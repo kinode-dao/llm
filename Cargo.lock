@@ -222,33 +222,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "groq"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "common_types",
- "kinode_process_lib",
- "multipart",
- "serde",
- "serde_json",
- "wit-bindgen",
-]
-
-[[package]]
-name = "groq_tester"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "common_types",
- "kinode_process_lib",
- "serde",
- "serde_json",
- "wit-bindgen",
-]
-
-[[package]]
 name = "groupable"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

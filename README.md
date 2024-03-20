@@ -77,3 +77,8 @@ openai_tester:llm:kinode
    ```
 
 Within the tester, you can see how different requests and responses are handled.
+
+## TODOS
+
+- [ ] Make a clean interface. This is a higher level question regarding process communication.
+- [ ] Cleaner call functions.
