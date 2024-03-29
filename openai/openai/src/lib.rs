@@ -1,5 +1,5 @@
 use anyhow::Context;
-use interface::openai::{
+use llm_interface::openai::{
     ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest, LLMResponse, OpenAiEmbeddingResponse, Provider
 };
 use kinode_process_lib::{
