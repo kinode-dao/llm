@@ -13,3 +13,7 @@
 */.vscode
 */*/**/yarn-error.log
 /target
+**/.DS_Store
+**/.vscode/
+
+
