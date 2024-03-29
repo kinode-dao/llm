@@ -10,7 +10,7 @@ kinode_process_lib = { git = "https://github.com/kinode-dao/process_lib.git", ta
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 wit-bindgen = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "efcc759" }
-common_types = { path = "../../common_types" }
+interface = { path = "../../interface" }
 
 [lib]
 crate-type = ["cdylib"]

@@ -5,7 +5,7 @@ members = [
     "lccp/lccp_tester",
     "openai/openai",
     "openai/openai_tester",
-    "common_types"
+    "interface"
 ]
 
 [profile.release]

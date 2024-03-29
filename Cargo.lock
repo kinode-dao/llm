@@ -154,14 +154,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "common_types"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "core-foundation-sys"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -346,6 +338,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "interface"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "kinode_process_lib",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "iron"
 version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -411,7 +413,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
- "common_types",
+ "interface",
  "kinode_process_lib",
  "multipart",
  "serde",
@@ -425,7 +427,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
- "common_types",
+ "interface",
  "kinode_process_lib",
  "serde",
  "serde_json",
@@ -604,7 +606,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
- "common_types",
+ "interface",
  "kinode_process_lib",
  "multipart",
  "serde",
@@ -618,7 +620,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
- "common_types",
+ "interface",
  "kinode_process_lib",
  "serde",
  "serde_json",

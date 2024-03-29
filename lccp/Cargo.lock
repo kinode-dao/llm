@@ -154,7 +154,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "common_types"
+name = "interface"
 version = "0.1.0"
 
 [[package]]
@@ -425,7 +425,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
- "common_types",
+ "interface",
  "kinode_process_lib",
  "multipart",
  "serde",

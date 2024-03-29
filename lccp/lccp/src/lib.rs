@@ -1,5 +1,5 @@
 use anyhow::Context;
-use common_types::lccp::{
+use interface::lccp::{
     ChatRequest, ChatResponse, ChatStreamingResponse, EmbeddingRequest, EmbeddingResponse,
     LLMRequest, LLMResponse,
 };

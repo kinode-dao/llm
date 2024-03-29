@@ -1,6 +1,6 @@
 use kinode_process_lib::{call_init, println, Address, ProcessId, Request};
 
-use common_types::openai::{ChatParams, ChatRequest, EmbeddingParams, EmbeddingRequest, LLMRequest, LLMResponse, Message, Provider};
+use interface::openai::{ChatParams, ChatRequest, EmbeddingParams, EmbeddingRequest, LLMRequest, LLMResponse, Message, Provider};
 use kinode_process_lib::await_next_request_body;
 
 wit_bindgen::generate!({

@@ -1,5 +1,5 @@
 use kinode_process_lib::{await_message, get_blob, call_init, println, Address, ProcessId, Request};
-use common_types::lccp::{ChatRequest, EmbeddingRequest, LLMRequest, LLMResponse};
+use interface::lccp::{ChatRequest, EmbeddingRequest, LLMRequest, LLMResponse};
 use anyhow::Context;
 
 wit_bindgen::generate!({
