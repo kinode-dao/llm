@@ -10,6 +10,8 @@ use kinode_process_lib::{
 use serde_json::json;
 use std::{collections::HashMap, vec};
 
+pub mod api;
+
 const CHAT_CONTEXT_NON_STREAMING: u8 = 0;
 const EMBEDDING_CONTEXT: u8 = 2;
 
