@@ -238,12 +238,13 @@ pub mod openai {
     pub enum LLMRequest {
         Embedding(EmbeddingRequest),
         Chat(ChatRequest),
+        ChatImage(ChatImageRequest),
     }
 
     impl LLMRequest {
         pub fn to_bytes(&self) -> Vec<u8> {
             match self {
-                LLMRequest::Chat(_) | LLMRequest::Embedding(_) => serde_json::to_vec(self).unwrap(),
+                _ => serde_json::to_vec(self).unwrap(),
             }
         }
 
@@ -270,6 +271,13 @@ pub mod openai {
         pub api_key: String,
         pub provider: Provider,
         pub params: ChatParams,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ChatImageRequest {
+        pub api_key: String,
+        pub provider: Provider,
+        pub params: ChatImageParams,
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -322,9 +330,85 @@ pub mod openai {
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ChatImageParams {
+        pub model: String,
+        pub messages: Vec<ChatImageMessage>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub frequency_penalty: Option<f64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub logit_bias: Option<HashMap<String, i32>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub logprobs: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub top_logprobs: Option<i32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub max_tokens: Option<i32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub n: Option<i32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub presence_penalty: Option<f64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub response_format: Option<ResponseFormat>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub seed: Option<i32>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub stop: Option<Stop>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub stream: Option<bool>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub temperature: Option<f64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub top_p: Option<f64>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub tools: Option<Vec<String>>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub tool_choice: Option<ToolChoice>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub user: Option<String>,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct Message {
         pub role: String,
         pub content: String,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ChatImageMessage {
+        pub role: String,
+        pub content: Vec<ChatImageContent>,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ChatImageContent {
+        #[serde(rename = "type")]
+        pub content_type: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        pub text: Option<String>,
+        #[serde(rename = "image_url", skip_serializing_if = "Option::is_none")]
+        pub image_url: Option<ImageUrl>,
+    }
+
+    impl ChatImageContent {
+        pub fn new(text: &str, url: &str) -> Vec<ChatImageContent> {
+            vec![
+                ChatImageContent {
+                    content_type: "text".to_string(),
+                    text: Some(text.to_string()),
+                    image_url: None,
+                },
+                ChatImageContent {
+                    content_type: "image_url".to_string(),
+                    text: None,
+                    image_url: Some(ImageUrl { url: url.to_string() }),
+                },
+            ]
+        }
+    }
+    
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ImageUrl {
+        pub url: String,
     }
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]

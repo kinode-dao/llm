@@ -1,6 +1,6 @@
 use anyhow::Context;
 use llm_interface::openai::{
-    ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest, LLMResponse, OpenAiEmbeddingResponse, Provider
+    ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest, LLMResponse, OpenAiEmbeddingResponse, Provider, ChatImageRequest
 };
 use kinode_process_lib::{
     await_message, call_init, get_blob,
@@ -65,6 +65,7 @@ fn handle_request(body: &[u8]) -> anyhow::Result<()> {
     match &request {
         LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
         LLMRequest::Chat(chat_request) => handle_chat_request(chat_request)?,
+        LLMRequest::ChatImage(chat_image_request) => handle_chat_image_request(chat_image_request)?,
     }
     Ok(())
 }
@@ -118,6 +119,19 @@ fn handle_chat_request_non_streaming(chat_request: &ChatRequest) -> anyhow::Resu
     )
 }
 
+fn handle_chat_image_request_non_streaming(chat_image_request: &ChatImageRequest) -> anyhow::Result<()> {
+    let url = match chat_image_request.provider {
+        Provider::OpenAi => OPENAI_BASE_URL,
+        Provider::Groq => GROQ_BASE_URL,
+    };
+    send_request(
+        &chat_image_request.params,
+        &format!("{}/chat/completions", url),
+        CHAT_CONTEXT_NON_STREAMING,
+        &chat_image_request.api_key,
+    )
+}
+
 fn handle_embedding_request(embedding_request: &EmbeddingRequest) -> anyhow::Result<()> {
     send_request(
         &embedding_request.params,
@@ -129,6 +143,10 @@ fn handle_embedding_request(embedding_request: &EmbeddingRequest) -> anyhow::Res
 
 fn handle_chat_request(chat_request: &ChatRequest) -> anyhow::Result<()> {
     handle_chat_request_non_streaming(chat_request)
+}
+
+fn handle_chat_image_request(chat_image_request: &ChatImageRequest) -> anyhow::Result<()> {
+    handle_chat_image_request_non_streaming(chat_image_request)
 }
 
 fn handle_message() -> anyhow::Result<()> {
