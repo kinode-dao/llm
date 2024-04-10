@@ -390,7 +390,17 @@ pub mod openai {
     }
 
     impl ChatImageContent {
-        pub fn new(text: &str, url: &str) -> Vec<ChatImageContent> {
+        pub fn from_text(text: &str) -> Vec<ChatImageContent> {
+            vec![
+                ChatImageContent {
+                    content_type: "text".to_string(),
+                    text: Some(text.to_string()),
+                    image_url: None,
+                },
+            ]
+        }
+
+        pub fn from_pair(text: &str, url: &str) -> Vec<ChatImageContent> {
             vec![
                 ChatImageContent {
                     content_type: "text".to_string(),
