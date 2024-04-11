@@ -90,7 +90,6 @@ fn send_request<T: serde::Serialize>(
         .as_bytes()
         .to_vec();
     let pretty_content = serde_json::to_string_pretty(&params).expect("Failed to pretty print JSON");
-    println!("Sending request with params: {}", pretty_content);
     let content = serde_json::to_string(params).expect("Failed to serialize params");
     Request::new()
         .target(Address::new(
@@ -169,7 +168,7 @@ fn handle_message() -> anyhow::Result<()> {
 call_init!(init);
 
 fn init(_our: Address) {
-    println!("openai_api: begin");
+    println!("begin");
 
     loop {
         match handle_message() {
