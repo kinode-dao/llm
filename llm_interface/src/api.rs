@@ -3,7 +3,10 @@ pub mod openai {
     use serde::{Deserialize, Serialize};
     use std::str::FromStr;
 
-    use crate::openai::{ChatParams, ChatRequest, LLMRequest, LLMResponse, Message, Provider, ChatImageRequest, ChatImageParams};
+    use crate::openai::{
+        ChatImageParams, ChatImageRequest, ChatParams, ChatRequest, LLMRequest, LLMResponse,
+        Message, Provider,
+    };
 
     pub fn spawn_openai_pkg(our: Address, openai_key: &str) -> anyhow::Result<OpenaiApi> {
         let openai_pkg_path = format!("{}/pkg/openai.wasm", our.package_id());
@@ -32,7 +35,6 @@ pub mod openai {
         openai_key: String,
         openai_worker: Address,
     }
-
     impl OpenaiApi {
         pub fn new(openai_key: String, openai_worker: Address) -> Self {
             Self {
@@ -64,19 +66,34 @@ pub mod openai {
             self.send_request_and_parse_response(request)
         }
 
-        // Private method to send request and parse response
         fn send_request_and_parse_response(&self, request: LLMRequest) -> anyhow::Result<Message> {
-            let msg = Request::new()
+            let send_result = Request::new()
                 .target(self.openai_worker.clone())
                 .body(request.to_bytes())
-                .send_and_await_response(10)??;
+                .send_and_await_response(10);
 
-            let response = LLMResponse::parse(msg.body())?;
-            match response {
-                LLMResponse::Chat(chat) => Ok(chat.to_message_response()),
-                _ => Err(anyhow::Error::msg(
-                    "Error querying OpenAI: wrong result type",
-                )),
+            match send_result {
+                Ok(response) => match LLMResponse::parse(response.body()) {
+                    Ok(llm_response) => match llm_response {
+                        LLMResponse::Chat(chat) => Ok(chat.to_message_response()),
+                        _ => {
+                            println!("Error querying OpenAI: wrong result type");
+                            Err(anyhow::Error::msg(
+                                "Error querying OpenAI: wrong result type",
+                            ))
+                        }
+                    },
+                    Err(_) => {
+                        println!("Failed to parse LLMResponse");
+                        Err(anyhow::Error::msg("Failed to parse LLMResponse"))
+                    }
+                },
+                Err(_) => {
+                    println!("Failed to send request or await response");
+                    Err(anyhow::Error::msg(
+                        "Failed to send request or await response",
+                    ))
+                }
             }
         }
     }
