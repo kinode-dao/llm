@@ -3,7 +3,7 @@ pub mod openai {
     use serde::{Deserialize, Serialize};
     use std::str::FromStr;
 
-    use crate::openai::{ChatParams, ChatRequest, LLMRequest, LLMResponse, Message, Provider, ChatImageRequest, ChatImageParams};
+    use crate::openai::{ChatParams, ChatRequest, LLMRequest, LLMResponse, Message, Provider, ChatImageRequest, ChatImageParams, EmbeddingRequest, EmbeddingParams};
 
     pub fn spawn_openai_pkg(our: Address, openai_key: &str) -> anyhow::Result<OpenaiApi> {
         let openai_pkg_path = format!("{}/pkg/openai.wasm", our.package_id());
