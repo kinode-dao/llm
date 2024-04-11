@@ -3,7 +3,7 @@ pub mod openai {
     use serde::{Deserialize, Serialize};
     use std::str::FromStr;
 
-    use crate::openai::{ChatParams, ChatRequest, LLMRequest, LLMResponse, Message, Provider};
+    use crate::openai::{ChatParams, ChatRequest, LLMRequest, LLMResponse, Message, Provider, ChatImageRequest, ChatImageParams};
 
     pub fn spawn_openai_pkg(our: Address, openai_key: &str) -> anyhow::Result<OpenaiApi> {
         let openai_pkg_path = format!("{}/pkg/openai.wasm", our.package_id());
@@ -48,21 +48,40 @@ pub mod openai {
                 provider: Provider::OpenAi,
             };
             let request = LLMRequest::Chat(chat_request);
+            self.send_request_and_parse_response(request)
+        }
+
+        pub fn chat_with_image(
+            &self,
+            chat_image_params: ChatImageParams,
+        ) -> anyhow::Result<Message> {
+            let chat_image_request = ChatImageRequest {
+                params: chat_image_params,
+                api_key: self.openai_key.clone(),
+                provider: Provider::OpenAi,
+            };
+            let request = LLMRequest::ChatImage(chat_image_request);
+            self.send_request_and_parse_response(request)
+        }
+
+        // Private method to send request and parse response
+        fn send_request_and_parse_response(&self, request: LLMRequest) -> anyhow::Result<Message> {
             let msg = Request::new()
                 .target(self.openai_worker.clone())
                 .body(request.to_bytes())
                 .send_and_await_response(10)??;
 
             let response = LLMResponse::parse(msg.body())?;
-            if let LLMResponse::Chat(chat) = response {
-                Ok(chat.to_message_response())
-            } else {
-                return Err(anyhow::Error::msg("Error querying OpenAI: wrong result"));
+            match response {
+                LLMResponse::Chat(chat) => Ok(chat.to_message_response()),
+                _ => Err(anyhow::Error::msg(
+                    "Error querying OpenAI: wrong result type",
+                )),
             }
         }
     }
 }
 
 pub mod lccp {
-    // TODO: 
+    // TODO:
 }
