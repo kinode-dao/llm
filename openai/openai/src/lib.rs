@@ -59,8 +59,8 @@ fn handle_chat_response_non_streaming() -> anyhow::Result<()> {
 }
 
 fn handle_request(body: &[u8]) -> anyhow::Result<()> {
-    let body_utf8 = String::from_utf8(body.to_vec()).expect("Failed to convert body to UTF-8 string");
-    println!("body utf is {}", body_utf8);
+    // let body_utf8 = String::from_utf8(body.to_vec()).expect("Failed to convert body to UTF-8 string");
+    // println!("body utf is {}", body_utf8);
     let request = LLMRequest::parse(body)?;
     match &request {
         LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
@@ -90,7 +90,6 @@ fn send_request<T: serde::Serialize>(
         .as_bytes()
         .to_vec();
     let pretty_content = serde_json::to_string_pretty(&params).expect("Failed to pretty print JSON");
-    println!("Sending request with params: {}", pretty_content);
     let content = serde_json::to_string(params).expect("Failed to serialize params");
     Request::new()
         .target(Address::new(
@@ -122,7 +121,6 @@ fn handle_chat_request_non_streaming(chat_request: &ChatRequest) -> anyhow::Resu
 }
 
 fn handle_chat_image_request_non_streaming(chat_image_request: &ChatImageRequest) -> anyhow::Result<()> {
-    println!("We're in image request");
     let url = match chat_image_request.provider {
         Provider::OpenAi => OPENAI_BASE_URL,
         Provider::Groq => GROQ_BASE_URL,
@@ -170,7 +168,7 @@ fn handle_message() -> anyhow::Result<()> {
 call_init!(init);
 
 fn init(_our: Address) {
-    println!("openai_api: begin");
+    println!("begin");
 
     loop {
         match handle_message() {
