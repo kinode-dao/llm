@@ -89,6 +89,8 @@ fn send_request<T: serde::Serialize>(
         .to_string()
         .as_bytes()
         .to_vec();
+    let pretty_content = serde_json::to_string_pretty(&params).expect("Failed to pretty print JSON");
+    println!("Sending request with params: {}", pretty_content);
     let content = serde_json::to_string(params).expect("Failed to serialize params");
     Request::new()
         .target(Address::new(

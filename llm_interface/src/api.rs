@@ -41,6 +41,15 @@ pub mod openai {
             }
         }
 
+        pub fn embedding(&self, embedding_params: EmbeddingParams) -> anyhow::Result<Message> {
+            let embedding_request = EmbeddingRequest {
+                params: embedding_params,
+                api_key: self.openai_key.clone(),
+            };
+            let request = LLMRequest::Embedding(embedding_request);
+            self.send_request_and_parse_response(request)
+        }
+
         pub fn chat(&self, chat_params: ChatParams) -> anyhow::Result<Message> {
             let chat_request = ChatRequest {
                 params: chat_params,
@@ -69,7 +78,7 @@ pub mod openai {
             let res = Request::new()
                 .target(self.openai_worker.clone())
                 .body(request.to_bytes())
-                .send_and_await_response(10);
+                .send_and_await_response(30);
 
             match res {
                 Ok(res) => {
