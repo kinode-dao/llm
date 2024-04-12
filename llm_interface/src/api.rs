@@ -29,8 +29,8 @@ pub mod openai {
 
     #[derive(Serialize, Deserialize, Debug, Clone)]
     pub struct OpenaiApi {
-        openai_key: String,
-        openai_worker: Address,
+        pub openai_key: String,
+        pub openai_worker: Address,
     }
 
     impl OpenaiApi {
