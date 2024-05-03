@@ -1,6 +1,6 @@
 use kinode_process_lib::{call_init, println, Address, ProcessId, Request};
 
-use llm_interface::openai::{ChatParams, ChatRequest, EmbeddingParams, EmbeddingRequest, LLMRequest, LLMResponse, Message, Provider};
+use llm_interface::openai::{ChatRequest, ChatRequest, EmbeddingRequest, EmbeddingRequest, LLMRequest, LLMResponse, Message, Provider};
 use kinode_process_lib::await_next_request_body;
 
 wit_bindgen::generate!({
@@ -42,7 +42,7 @@ fn send_request_and_validate_response<
 }
 
 fn test_embedding(api_key: &str) -> anyhow::Result<()> {
-    let embedding_params = EmbeddingParams {
+    let embedding_params = EmbeddingRequest {
         input: "Where is my mind?".to_string(),
         model: "text-embedding-3-small".to_string(),
     };
@@ -61,7 +61,7 @@ fn test_embedding(api_key: &str) -> anyhow::Result<()> {
 }
 
 fn test_chat(api_key: &str) -> anyhow::Result<()> {
-    let chat_params = ChatParams {
+    let chat_params = ChatRequest {
         model: "gpt-3.5-turbo".to_string(),
         messages: vec![
             Message {

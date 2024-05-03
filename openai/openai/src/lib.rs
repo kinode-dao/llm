@@ -1,22 +1,33 @@
 use anyhow::Context;
-use llm_interface::openai::{
-    ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest, LLMResponse, OpenAiEmbeddingResponse, Provider, ChatImageRequest
-};
 use kinode_process_lib::{
     await_message, call_init, get_blob,
     http::{HttpClientAction, OutgoingHttpRequest},
     println, Address, LazyLoadBlob, ProcessId, Request, Response,
 };
+use llm_interface::openai::{
+    ChatImageRequest, ChatRequest, ChatResponse, EmbeddingRequest, EmbeddingResponse, LLMRequest,
+    LLMResponse, OpenAiEmbeddingResponse, Provider,
+};
 use serde_json::json;
 use std::{collections::HashMap, vec};
 
-pub mod api;
-
-const CHAT_CONTEXT_NON_STREAMING: u8 = 0;
-const EMBEDDING_CONTEXT: u8 = 2;
 
 pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
+
+// TODO: Put this in helper functions
+// TODO: Zena: We should probably derive this through a trait at some point? 
+pub fn request_to_context(request: &LLMRequest) -> usize {
+    match request {
+        LLMRequest::RegisterApiKey(_) => 0,
+        LLMRequest::Embedding(_) => 1,
+        LLMRequest::OpenaiChat(_) => 2,
+        LLMRequest::GroqChat(_) => 3,
+        LLMRequest::ChatImage(_) => 4,
+    }
+}
+
+// ----------------------------------------------------------
 
 wit_bindgen::generate!({
     path: "wit",
@@ -27,6 +38,11 @@ wit_bindgen::generate!({
 });
 
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
+    let a = TestType {
+        process_name: "hi".to_string(),
+        package_name: "hi".to_string(),
+    };
+
     match context[0] {
         CHAT_CONTEXT_NON_STREAMING => handle_chat_response_non_streaming()?,
         EMBEDDING_CONTEXT => handle_embedding_response()?,
@@ -59,13 +75,16 @@ fn handle_chat_response_non_streaming() -> anyhow::Result<()> {
 }
 
 fn handle_request(body: &[u8]) -> anyhow::Result<()> {
-    // let body_utf8 = String::from_utf8(body.to_vec()).expect("Failed to convert body to UTF-8 string");
-    // println!("body utf is {}", body_utf8);
-    let request = LLMRequest::parse(body)?;
+    let request = serde_json::from_slice::<LLMRequest>(body)?;
     match &request {
-        LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
-        LLMRequest::Chat(chat_request) => handle_chat_request(chat_request)?,
-        LLMRequest::ChatImage(chat_image_request) => handle_chat_image_request(chat_image_request)?,
+        LLMRequest::RegisterApiKey(api_key) => todo!(),
+        LLMRequest::Embedding(_) => todo!(),
+        LLMRequest::OpenaiChat(_) => todo!(),
+        LLMRequest::GroqChat(_) => todo!(),
+        LLMRequest::ChatImage(_) => todo!(),
+        // LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
+        // LLMRequest::Chat(chat_request) => handle_chat_request(chat_request)?,
+        // LLMRequest::ChatImage(chat_image_request) => handle_chat_image_request(chat_image_request)?,
     }
     Ok(())
 }
@@ -89,7 +108,8 @@ fn send_request<T: serde::Serialize>(
         .to_string()
         .as_bytes()
         .to_vec();
-    let pretty_content = serde_json::to_string_pretty(&params).expect("Failed to pretty print JSON");
+    let pretty_content =
+        serde_json::to_string_pretty(&params).expect("Failed to pretty print JSON");
     let content = serde_json::to_string(params).expect("Failed to serialize params");
     Request::new()
         .target(Address::new(
@@ -120,7 +140,9 @@ fn handle_chat_request_non_streaming(chat_request: &ChatRequest) -> anyhow::Resu
     )
 }
 
-fn handle_chat_image_request_non_streaming(chat_image_request: &ChatImageRequest) -> anyhow::Result<()> {
+fn handle_chat_image_request_non_streaming(
+    chat_image_request: &ChatImageRequest,
+) -> anyhow::Result<()> {
     let url = match chat_image_request.provider {
         Provider::OpenAi => OPENAI_BASE_URL,
         Provider::Groq => GROQ_BASE_URL,
@@ -166,10 +188,7 @@ fn handle_message() -> anyhow::Result<()> {
 }
 
 call_init!(init);
-
 fn init(_our: Address) {
-    println!("begin");
-
     loop {
         match handle_message() {
             Ok(()) => {}
