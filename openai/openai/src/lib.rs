@@ -11,6 +11,8 @@ use llm_interface::openai::{
 use serde_json::json;
 use std::{collections::HashMap, vec};
 
+mod structs;
+use structs::State;
 
 pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
@@ -74,10 +76,10 @@ fn handle_chat_response_non_streaming() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn handle_request(body: &[u8]) -> anyhow::Result<()> {
+fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> {
     let request = serde_json::from_slice::<LLMRequest>(body)?;
     match &request {
-        LLMRequest::RegisterApiKey(api_key) => todo!(),
+        LLMRequest::RegisterApiKey(api_key) => register_api_key(api_key, state),
         LLMRequest::Embedding(_) => todo!(),
         LLMRequest::OpenaiChat(_) => todo!(),
         LLMRequest::GroqChat(_) => todo!(),
@@ -85,6 +87,20 @@ fn handle_request(body: &[u8]) -> anyhow::Result<()> {
         // LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
         // LLMRequest::Chat(chat_request) => handle_chat_request(chat_request)?,
         // LLMRequest::ChatImage(chat_image_request) => handle_chat_image_request(chat_image_request)?,
+    }
+    Ok(())
+}
+
+fn register_api_key(api_key: &str, state: &mut Option<State>) -> anyhow::Result<()> {
+    match state {
+        Some(state) => {
+            state.openai_api_key = api_key.to_string();
+            state.save();
+        }
+        None => {
+            let state = State::new(api_key.to_string());
+            state.save();
+        }
     }
     Ok(())
 }
@@ -172,7 +188,7 @@ fn handle_chat_image_request(chat_image_request: &ChatImageRequest) -> anyhow::R
     handle_chat_image_request_non_streaming(chat_image_request)
 }
 
-fn handle_message() -> anyhow::Result<()> {
+fn handle_message(state: &mut Option<State>) -> anyhow::Result<()> {
     let message = await_message()?;
     if message.is_request() {
         let _ = handle_request(message.body());
@@ -189,8 +205,9 @@ fn handle_message() -> anyhow::Result<()> {
 
 call_init!(init);
 fn init(_our: Address) {
+    let mut state = State::fetch();
     loop {
-        match handle_message() {
+        match handle_message(&mut state) {
             Ok(()) => {}
             Err(e) => {
                 println!("openai_api: error: {:?}", e);
