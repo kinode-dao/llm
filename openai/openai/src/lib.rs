@@ -18,7 +18,7 @@ pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
 
 // TODO: Put this in helper functions
-// TODO: Zena: We should probably derive this through a trait at some point? 
+// TODO: Zena: We should probably derive this through a trait at some point?
 pub fn request_to_context(request: &LLMRequest) -> usize {
     match request {
         LLMRequest::RegisterApiKey(_) => 0,
@@ -27,6 +27,14 @@ pub fn request_to_context(request: &LLMRequest) -> usize {
         LLMRequest::GroqChat(_) => 3,
         LLMRequest::ChatImage(_) => 4,
     }
+}
+
+pub fn serialize_without_none<T: Serialize>(input: &T) -> serde_json::Result<Vec<u8>> {
+    let mut value = serde_json::to_value(input)?;
+    if let serde_json::Value::Object(ref mut map) = value {
+        map.retain(|_, v| !v.is_null());
+    }
+    serde_json::to_vec(&value)
 }
 
 // ----------------------------------------------------------
@@ -78,17 +86,26 @@ fn handle_chat_response_non_streaming() -> anyhow::Result<()> {
 
 fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> {
     let request = serde_json::from_slice::<LLMRequest>(body)?;
+    let context = request_to_context(&request);
     match &request {
         LLMRequest::RegisterApiKey(api_key) => register_api_key(api_key, state),
-        LLMRequest::Embedding(_) => todo!(),
-        LLMRequest::OpenaiChat(_) => todo!(),
-        LLMRequest::GroqChat(_) => todo!(),
-        LLMRequest::ChatImage(_) => todo!(),
-        // LLMRequest::Embedding(embedding_request) => handle_embedding_request(embedding_request)?,
-        // LLMRequest::Chat(chat_request) => handle_chat_request(chat_request)?,
-        // LLMRequest::ChatImage(chat_image_request) => handle_chat_image_request(chat_image_request)?,
+        LLMRequest::Embedding(embedding_request) => {
+            let endpoint = format!("{}/embeddings", OPENAI_BASE_URL);
+            handle_embedding_request(embedding_request, state, context, &endpoint)
+        }
+        LLMRequest::OpenaiChat(chat_request) => {
+            let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
+            handle_chat_request(chat_request, state, context, &endpoint)
+        }
+        LLMRequest::GroqChat(chat_request) => {
+            let endpoint = format!("{}/chat/completions", GROQ_BASE_URL);
+            handle_chat_request(chat_request, state, context, &endpoint)
+        }
+        LLMRequest::ChatImage(chat_image_request) => {
+            let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
+            handle_chat_image_request(chat_image_request, state, context, &endpoint)
+        }
     }
-    Ok(())
 }
 
 fn register_api_key(api_key: &str, state: &mut Option<State>) -> anyhow::Result<()> {
@@ -143,55 +160,117 @@ fn send_request<T: serde::Serialize>(
     Ok(())
 }
 
-fn handle_chat_request_non_streaming(chat_request: &ChatRequest) -> anyhow::Result<()> {
-    let url = match chat_request.provider {
-        Provider::OpenAi => OPENAI_BASE_URL,
-        Provider::Groq => GROQ_BASE_URL,
-    };
-    send_request(
-        &chat_request.params,
-        &format!("{}/chat/completions", url),
-        CHAT_CONTEXT_NON_STREAMING,
-        &chat_request.api_key,
-    )
-}
-
-fn handle_chat_image_request_non_streaming(
-    chat_image_request: &ChatImageRequest,
+fn handle_embedding_request(
+    embedding_request: &EmbeddingRequest,
+    state: &mut Option<State>,
+    context: u8,
+    endpoint: &str,
 ) -> anyhow::Result<()> {
-    let url = match chat_image_request.provider {
-        Provider::OpenAi => OPENAI_BASE_URL,
-        Provider::Groq => GROQ_BASE_URL,
+    let api_key = state.as_ref()?.openai_api_key.clone();
+    let outgoing_request = OutgoingHttpRequest {
+        method: "POST".to_string(),
+        version: None,
+        url: endpoint.to_string(),
+        headers: HashMap::from_iter(vec![
+            ("Content-Type".to_string(), "application/json".to_string()),
+            ("Authorization".to_string(), format!("Bearer {}", api_key)),
+        ]),
     };
-    send_request(
-        &chat_image_request.params,
-        &format!("{}/chat/completions", url),
-        CHAT_CONTEXT_NON_STREAMING,
-        &chat_image_request.api_key,
-    )
+    let body = serde_json::to_vec(&HttpClientAction::Http(outgoing_request))?;
+    let bytes = serialize_without_none(&embedding_request)?;
+    Request::new()
+        .target(Address::new(
+            "our",
+            ProcessId::new(Some("http_client"), "distro", "sys"),
+        ))
+        .body(body)
+        .expects_response(30)
+        .context(vec![context])
+        .blob(LazyLoadBlob {
+            mime: Some("application/json".to_string()),
+            bytes,
+        })
+        .send()?;
+
+    Ok(())
 }
 
-fn handle_embedding_request(embedding_request: &EmbeddingRequest) -> anyhow::Result<()> {
-    send_request(
-        &embedding_request.params,
-        "embeddings",
-        EMBEDDING_CONTEXT,
-        &embedding_request.api_key,
-    )
+fn handle_chat_request(
+    chat_request: &ChatRequest,
+    state: &mut Option<State>,
+    context: u8,
+    endpoint: &str,
+) -> anyhow::Result<()> {
+    let api_key = state.as_ref()?.openai_api_key.clone();
+
+    let outgoing_request = OutgoingHttpRequest {
+        method: "POST".to_string(),
+        version: None,
+        url: endpoint.to_string(),
+        headers: HashMap::from_iter(vec![
+            ("Content-Type".to_string(), "application/json".to_string()),
+            ("Authorization".to_string(), format!("Bearer {}", api_key)),
+        ]),
+    };
+    let body = serde_json::to_vec(&HttpClientAction::Http(outgoing_request))?;
+    let bytes = serialize_without_none(&chat_request)?;
+    Request::new()
+        .target(Address::new(
+            "our",
+            ProcessId::new(Some("http_client"), "distro", "sys"),
+        ))
+        .body(body)
+        .expects_response(30)
+        .context(vec![context])
+        .blob(LazyLoadBlob {
+            mime: Some("application/json".to_string()),
+            bytes,
+        })
+        .send()?;
+
+    Ok(())
 }
 
-fn handle_chat_request(chat_request: &ChatRequest) -> anyhow::Result<()> {
-    handle_chat_request_non_streaming(chat_request)
-}
+fn handle_chat_image_request(
+    chat_image_request: &ChatImageRequest,
+    state: &mut Option<State>,
+    context: u8,
+    endpoint: &str,
+) -> anyhow::Result<()> {
+    let api_key = state.as_ref()?.openai_api_key.clone();
 
-fn handle_chat_image_request(chat_image_request: &ChatImageRequest) -> anyhow::Result<()> {
-    handle_chat_image_request_non_streaming(chat_image_request)
+    let outgoing_request = OutgoingHttpRequest {
+        method: "POST".to_string(),
+        version: None,
+        url: endpoint.to_string(),
+        headers: HashMap::from_iter(vec![
+            ("Content-Type".to_string(), "application/json".to_string()),
+            ("Authorization".to_string(), format!("Bearer {}", api_key)),
+        ]),
+    };
+    let body = serde_json::to_vec(&HttpClientAction::Http(outgoing_request))?;
+    let bytes = serialize_without_none(&chat_image_request)?;
+    Request::new()
+        .target(Address::new(
+            "our",
+            ProcessId::new(Some("http_client"), "distro", "sys"),
+        ))
+        .body(body)
+        .expects_response(30)
+        .context(vec![context])
+        .blob(LazyLoadBlob {
+            mime: Some("application/json".to_string()),
+            bytes,
+        })
+        .send()?;
+
+    Ok(())
 }
 
 fn handle_message(state: &mut Option<State>) -> anyhow::Result<()> {
     let message = await_message()?;
     if message.is_request() {
-        let _ = handle_request(message.body());
+        let _ = handle_request(message.body(), state);
     } else {
         let _ = handle_response(
             message
