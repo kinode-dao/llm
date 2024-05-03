@@ -1153,19 +1153,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lccp_tester"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "kinode_process_lib",
- "llm_interface",
- "serde",
- "serde_json",
- "wit-bindgen",
-]
-
-[[package]]
 name = "leb128"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1396,19 +1383,6 @@ dependencies = [
  "kinode_process_lib",
  "llm_interface",
  "multipart",
- "serde",
- "serde_json",
- "wit-bindgen",
-]
-
-[[package]]
-name = "openai_tester"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "kinode_process_lib",
- "llm_interface",
  "serde",
  "serde_json",
  "wit-bindgen",
