@@ -30,7 +30,7 @@ wit_bindgen::generate!({
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
     match context[0] {
         EMBEDDING_CONTEXT => handle_embedding_response()?,
-        OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT => handle_chat_response()?,
+        OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT | CHAT_IMAGE_CONTEXT => handle_chat_response()?,
         _ => {}
     }
 
