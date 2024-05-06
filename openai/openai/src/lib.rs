@@ -101,7 +101,7 @@ fn register_openai_api_key(
             *state = Some(_state);
         }
     }
-    Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
+    let _ = Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
     Ok(())
 }
 
@@ -124,7 +124,7 @@ fn register_groq_api_key(
             *state = Some(_state);
         }
     }
-    Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
+    let _ = Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
     Ok(())
 }
 
