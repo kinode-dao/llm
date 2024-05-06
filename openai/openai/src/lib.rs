@@ -61,7 +61,8 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
     let request = serde_json::from_slice::<LLMRequest>(body)?;
     let context = request_to_context(&request);
     match &request {
-        LLMRequest::RegisterApiKey(api_request) => register_api_key(api_request, state),
+        LLMRequest::RegisterOpenaiApiKey(api_request) => register_openai_api_key(api_request, state),
+        LLMRequest::RegisterGroqApiKey(api_request) => register_groq_api_key(api_request, state),
         LLMRequest::Embedding(embedding_request) => {
             let endpoint = format!("{}/embeddings", OPENAI_BASE_URL);
             handle_generic_request(embedding_request, state, context, &endpoint)
@@ -81,7 +82,7 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
     }
 }
 
-fn register_api_key(
+fn register_openai_api_key(
     api_request: &RegisterApiKeyRequest,
     state: &mut Option<State>,
 ) -> anyhow::Result<()> {
@@ -92,7 +93,31 @@ fn register_api_key(
             state.save();
         }
         None => {
-            let state = State::new(api_key.to_string());
+            let state = State {
+                openai_api_key: api_key.to_string(),
+                ..State::default()
+            };
+            state.save();
+        }
+    }
+    Ok(())
+}
+
+fn register_groq_api_key(
+    api_request: &RegisterApiKeyRequest,
+    state: &mut Option<State>,
+) -> anyhow::Result<()> {
+    let api_key = &api_request.api_key;
+    match state {
+        Some(state) => {
+            state.groq_api_key = api_key.to_string();
+            state.save();
+        }
+        None => {
+            let state = State {
+                groq_api_key: api_key.to_string(),
+                ..State::default()
+            };
             state.save();
         }
     }

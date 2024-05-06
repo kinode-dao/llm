@@ -1,16 +1,13 @@
 use serde::{Deserialize, Serialize};
 use kinode_process_lib::{get_state, set_state};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct State {
     pub openai_api_key: String,
+    pub groq_api_key: String,
 }
 
 impl State {
-    pub fn new(openai_api_key: String) -> Self {
-        State { openai_api_key }
-    }
-
     pub fn fetch() -> Option<State> {
         if let Some(state_bytes) = get_state() {
             bincode::deserialize(&state_bytes).ok()

@@ -7,7 +7,8 @@ pub mod openai {
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub enum LLMRequest {
-        RegisterApiKey(RegisterApiKeyRequest),
+        RegisterOpenaiApiKey(RegisterApiKeyRequest),
+        RegisterGroqApiKey(RegisterApiKeyRequest),
         Embedding(EmbeddingRequest),
         OpenaiChat(ChatRequest),
         GroqChat(ChatRequest),
