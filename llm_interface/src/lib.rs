@@ -30,21 +30,37 @@ pub mod openai {
     pub struct ChatRequest {
         pub model: String,
         pub messages: Vec<Message>,
+        #[builder(default)]
         pub frequency_penalty: Option<f64>,
+        #[builder(default)]
         pub logit_bias: Option<HashMap<String, i32>>,
+        #[builder(default)]
         pub logprobs: Option<bool>,
+        #[builder(default)]
         pub top_logprobs: Option<i32>,
+        #[builder(default)]
         pub max_tokens: Option<i32>,
+        #[builder(default)]
         pub n: Option<i32>,
+        #[builder(default)]
         pub presence_penalty: Option<f64>,
+        #[builder(default)]
         pub response_format: Option<ResponseFormat>,
+        #[builder(default)]
         pub seed: Option<i32>,
+        #[builder(default)]
         pub stop: Option<Stop>,
+        #[builder(default)]
         pub stream: Option<bool>,
+        #[builder(default)]
         pub temperature: Option<f64>,
+        #[builder(default)]
         pub top_p: Option<f64>,
+        #[builder(default)]
         pub tools: Option<Vec<String>>,
+        #[builder(default)]
         pub tool_choice: Option<ToolChoice>,
+        #[builder(default)]
         pub user: Option<String>,
     }
 
@@ -52,21 +68,37 @@ pub mod openai {
     pub struct ChatImageRequest {
         pub model: String,
         pub messages: Vec<ChatImageMessage>,
+        #[builder(default)]
         pub frequency_penalty: Option<f64>,
+        #[builder(default)]
         pub logit_bias: Option<HashMap<String, i32>>,
+        #[builder(default)]
         pub logprobs: Option<bool>,
+        #[builder(default)]
         pub top_logprobs: Option<i32>,
+        #[builder(default)]
         pub max_tokens: Option<i32>,
+        #[builder(default)]
         pub n: Option<i32>,
+        #[builder(default)]
         pub presence_penalty: Option<f64>,
+        #[builder(default)]
         pub response_format: Option<ResponseFormat>,
+        #[builder(default)]
         pub seed: Option<i32>,
+        #[builder(default)]
         pub stop: Option<Stop>,
+        #[builder(default)]
         pub stream: Option<bool>,
+        #[builder(default)]
         pub temperature: Option<f64>,
+        #[builder(default)]
         pub top_p: Option<f64>,
+        #[builder(default)]
         pub tools: Option<Vec<String>>,
+        #[builder(default)]
         pub tool_choice: Option<ToolChoice>,
+        #[builder(default)]
         pub user: Option<String>,
     }
 
@@ -86,8 +118,10 @@ pub mod openai {
     pub struct ChatImageContent {
         #[serde(rename = "type")]
         pub content_type: String,
+        #[builder(default)]
         pub text: Option<String>,
         #[serde(rename = "image_url")]
+        #[builder(default)]
         pub image_url: Option<ImageUrl>,
     }
 
