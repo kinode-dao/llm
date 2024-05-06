@@ -30,7 +30,7 @@ wit_bindgen::generate!({
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
     match context[0] {
         EMBEDDING_CONTEXT => handle_embedding_response()?,
-        OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT | CHAT_IMAGE_CONTEXT => handle_chat_response()?,
+        OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT => handle_chat_response()?,
         _ => {}
     }
 
@@ -75,10 +75,10 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
             let endpoint = format!("{}/chat/completions", GROQ_BASE_URL);
             handle_generic_request(chat_request, state, context, &endpoint)
         }
-        LLMRequest::ChatImage(chat_image_request) => {
-            let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
-            handle_generic_request(chat_image_request, state, context, &endpoint)
-        }
+        // LLMRequest::ChatImage(chat_image_request) => {
+        //     let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
+        //     handle_generic_request(chat_image_request, state, context, &endpoint)
+        // }
     }
 }
 
