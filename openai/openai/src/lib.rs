@@ -88,18 +88,20 @@ fn register_openai_api_key(
 ) -> anyhow::Result<()> {
     let api_key = &api_request.api_key;
     match state {
-        Some(state) => {
-            state.openai_api_key = api_key.to_string();
-            state.save();
+        Some(_state) => {
+            _state.openai_api_key = api_key.to_string();
+            _state.save();
         }
         None => {
-            let state = State {
+            let _state = State {
                 openai_api_key: api_key.to_string(),
                 ..State::default()
             };
-            state.save();
+            _state.save();
+            *state = Some(_state);
         }
     }
+    Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
     Ok(())
 }
 
@@ -109,18 +111,20 @@ fn register_groq_api_key(
 ) -> anyhow::Result<()> {
     let api_key = &api_request.api_key;
     match state {
-        Some(state) => {
-            state.groq_api_key = api_key.to_string();
-            state.save();
+        Some(_state) => {
+            _state.groq_api_key = api_key.to_string();
+            _state.save();
         }
         None => {
-            let state = State {
+            let _state = State {
                 groq_api_key: api_key.to_string(),
                 ..State::default()
             };
-            state.save();
+            _state.save();
+            *state = Some(_state);
         }
     }
+    Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
     Ok(())
 }
 
@@ -178,6 +182,7 @@ fn handle_message(state: &mut Option<State>) -> anyhow::Result<()> {
 
 call_init!(init);
 fn init(_our: Address) {
+    println!("init");
     let mut state = State::fetch();
     loop {
         match handle_message(&mut state) {

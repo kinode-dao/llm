@@ -156,6 +156,7 @@ pub mod openai {
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub enum LLMResponse {
+        Ok,
         Embedding(EmbeddingResponse),
         Chat(ChatResponse),
     }
