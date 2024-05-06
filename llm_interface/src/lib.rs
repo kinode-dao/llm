@@ -12,7 +12,7 @@ pub mod openai {
         Embedding(EmbeddingRequest),
         OpenaiChat(ChatRequest),
         GroqChat(ChatRequest),
-        // ChatImage(ChatImageRequest),
+        ChatImage(ChatImageRequest),
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]

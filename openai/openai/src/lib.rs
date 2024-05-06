@@ -77,10 +77,10 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
             let endpoint = format!("{}/chat/completions", GROQ_BASE_URL);
             handle_generic_request(chat_request, state, context, &endpoint)
         }
-        // LLMRequest::ChatImage(chat_image_request) => {
-        //     let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
-        //     handle_generic_request(chat_image_request, state, context, &endpoint)
-        // }
+        LLMRequest::ChatImage(chat_image_request) => {
+            let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
+            handle_generic_request(chat_image_request, state, context, &endpoint)
+        }
     }
 }
 
@@ -137,7 +137,7 @@ fn handle_generic_request<T: Serialize>(
     endpoint: &str,
 ) -> anyhow::Result<()> {
     let api_key = match context {
-        OPENAI_CHAT_CONTEXT | EMBEDDING_CONTEXT => state
+        OPENAI_CHAT_CONTEXT | EMBEDDING_CONTEXT | CHAT_IMAGE_CONTEXT => state
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
             .openai_api_key
