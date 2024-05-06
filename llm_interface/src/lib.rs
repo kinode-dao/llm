@@ -164,7 +164,7 @@ pub mod openai {
     // Why does openai make the jsons so dumb? People just want the response. (self.choices[0].message.content.clone())
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct ChatResponse {
-        pub id: String,
+        pub id: Option<String>,
         pub object: String,
         pub created: i64,
         pub model: String,
