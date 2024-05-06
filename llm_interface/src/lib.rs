@@ -165,12 +165,12 @@ pub mod openai {
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct ChatResponse {
         pub id: Option<String>,
-        pub object: String,
-        pub created: i64,
-        pub model: String,
-        pub system_fingerprint: String,
+        pub object: Option<String>,
+        pub created: Option<i64>,
+        pub model: Option<String>,
+        pub system_fingerprint: Option<String>,
         pub choices: Vec<Choice>,
-        pub usage: Usage,
+        pub usage: Option<Usage>,
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
