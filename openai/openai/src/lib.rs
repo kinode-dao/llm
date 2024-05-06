@@ -49,6 +49,8 @@ fn handle_embedding_response() -> anyhow::Result<()> {
 
 fn handle_chat_response() -> anyhow::Result<()> {
     let bytes = get_blob().context("Couldn't get blob")?;
+    let decoded_chat_response = String::from_utf8(bytes.bytes.clone()).unwrap_or_else(|_| String::from("Failed to decode chat response"));
+    println!("Decoded Chat Response: {}", decoded_chat_response);
     let chat_response = serde_json::from_slice::<ChatResponse>(bytes.bytes.as_slice())?;
     let llm_response = LLMResponse::Chat(chat_response);
     let _ = Response::new()
@@ -134,11 +136,19 @@ fn handle_generic_request<T: Serialize>(
     context: u8,
     endpoint: &str,
 ) -> anyhow::Result<()> {
-    let api_key = state
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
-        .openai_api_key
-        .clone();
+    let api_key = match context {
+        OPENAI_CHAT_CONTEXT | EMBEDDING_CONTEXT => state
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
+            .openai_api_key
+            .clone(),
+        GROQ_CHAT_CONTEXT => state
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
+            .groq_api_key
+            .clone(),
+        _ => return Err(anyhow::anyhow!("Invalid context for API key")),
+    };
     let outgoing_request = OutgoingHttpRequest {
         method: "POST".to_string(),
         version: None,
