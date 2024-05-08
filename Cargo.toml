@@ -1,8 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "lccp/lccp",
-    "openai/openai",
     "llm_interface"
 ]
 
