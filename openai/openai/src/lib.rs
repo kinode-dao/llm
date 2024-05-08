@@ -49,7 +49,6 @@ fn handle_embedding_response() -> anyhow::Result<()> {
 
 fn handle_chat_response() -> anyhow::Result<()> {
     let bytes = get_blob().context("Couldn't get blob")?;
-    let decoded_chat_response = String::from_utf8(bytes.bytes.clone()).unwrap_or_else(|_| String::from("Failed to decode chat response"));
     let chat_response = serde_json::from_slice::<ChatResponse>(bytes.bytes.as_slice())?;
     let llm_response = LLMResponse::Chat(chat_response);
     let _ = Response::new()

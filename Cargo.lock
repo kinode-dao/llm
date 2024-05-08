@@ -1179,10 +1179,10 @@ checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
 [[package]]
 name = "llm_interface"
 version = "0.1.0"
+source = "git+https://github.com/kinode-dao/llm/?branch=interface#2bd3067f13e319a7128481598a7e5ae248a924e5"
 dependencies = [
  "anyhow",
  "derive_builder",
- "kinode_process_lib",
  "serde",
  "serde_json",
 ]
