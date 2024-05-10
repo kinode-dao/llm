@@ -2,10 +2,7 @@
 resolver = "2"
 members = [
     "lccp/lccp",
-    "lccp/lccp_tester",
     "openai/openai",
-    "openai/openai_tester",
-    "llm_interface"
 ]
 
 [profile.release]

@@ -11,7 +11,7 @@ multipart = "0.18.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 wit-bindgen = { git = "https://github.com/bytecodealliance/wit-bindgen", rev = "21a46c7" }
-llm_interface = { path = "../../llm_interface" }
+llm_interface = { git = "https://github.com/kinode-dao/llm/", branch = "interface" }
 
 [lib]
 crate-type = ["cdylib"]
