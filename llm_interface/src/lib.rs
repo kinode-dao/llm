@@ -13,13 +13,20 @@ pub mod openai {
         OpenaiChat(ChatRequest),
         GroqChat(ChatRequest),
         ChatImage(ChatImageRequest),
+        RegisterOaiProviderEndpoint(RegisterEndpointRequest),
+        OaiProviderChat(ChatRequest),
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
     pub struct RegisterApiKeyRequest {
         pub api_key: String,
     }
-
+    
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
+    pub struct RegisterEndpointRequest {
+        pub endpoint: String,
+    }
+    
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
     pub struct EmbeddingRequest {
         pub input: String,
@@ -193,6 +200,7 @@ pub mod openai {
         Ok,
         Embedding(EmbeddingResponse),
         Chat(ChatResponse),
+        Err(ErrorResponse),
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -200,6 +208,10 @@ pub mod openai {
         pub embedding: Vec<f32>,
     }
 
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ErrorResponse {
+        pub error: String,
+    }
 }
 
 pub mod lccp {
