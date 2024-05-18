@@ -18,6 +18,8 @@ use helpers::*;
 
 pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
+const DEFAULT_TIMEOUT_SECONDS: u16 = 30;
+const OAI_PROVIDER_TIMEOUT_SECONDS: u16 = 60;
 
 wit_bindgen::generate!({
     path: "wit",
@@ -30,7 +32,7 @@ wit_bindgen::generate!({
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
     match context[0] {
         EMBEDDING_CONTEXT => handle_embedding_response()?,
-        OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT | CHAT_IMAGE_CONTEXT => handle_chat_response()?,
+        OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT | CHAT_IMAGE_CONTEXT | OAI_PROVIDER_CHAT_CONTEXT => handle_chat_response()?,
         _ => {}
     }
 
@@ -66,19 +68,19 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
         LLMRequest::RegisterOaiProviderEndpoint(endpoint_request) => register_oai_provider_endpoint(endpoint_request, state),
         LLMRequest::Embedding(embedding_request) => {
             let endpoint = format!("{}/embeddings", OPENAI_BASE_URL);
-            handle_generic_request(embedding_request, state, context, &endpoint)
+            handle_generic_request(embedding_request, state, context, &endpoint, None)
         }
         LLMRequest::OpenaiChat(chat_request) => {
             let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
-            handle_generic_request(chat_request, state, context, &endpoint)
+            handle_generic_request(chat_request, state, context, &endpoint, None)
         }
         LLMRequest::GroqChat(chat_request) => {
             let endpoint = format!("{}/chat/completions", GROQ_BASE_URL);
-            handle_generic_request(chat_request, state, context, &endpoint)
+            handle_generic_request(chat_request, state, context, &endpoint, None)
         }
         LLMRequest::ChatImage(chat_image_request) => {
             let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
-            handle_generic_request(chat_image_request, state, context, &endpoint)
+            handle_generic_request(chat_image_request, state, context, &endpoint, None)
         }
         LLMRequest::OaiProviderChat(chat_request) => {
             let Some(s) = state else {
@@ -96,7 +98,7 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
                 return Err(anyhow::anyhow!(err));
             };
             let endpoint = format!("{}/chat/completions", base_url);
-            handle_generic_request(chat_request, state, context, &endpoint)
+            handle_generic_request(chat_request, state, context, &endpoint, Some(OAI_PROVIDER_TIMEOUT_SECONDS))
         }
     }
 }
@@ -175,28 +177,31 @@ fn handle_generic_request<T: Serialize>(
     state: &mut Option<State>,
     context: u8,
     endpoint: &str,
+    timeout: Option<u16>,
 ) -> anyhow::Result<()> {
     let api_key = match context {
-        OPENAI_CHAT_CONTEXT | EMBEDDING_CONTEXT | CHAT_IMAGE_CONTEXT => state
+        OPENAI_CHAT_CONTEXT | EMBEDDING_CONTEXT | CHAT_IMAGE_CONTEXT => Some(state
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
             .openai_api_key
-            .clone(),
-        GROQ_CHAT_CONTEXT => state
+            .clone()),
+        GROQ_CHAT_CONTEXT => Some(state
             .as_ref()
             .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
             .groq_api_key
-            .clone(),
+            .clone()),
+        OAI_PROVIDER_CHAT_CONTEXT => None,
         _ => return Err(anyhow::anyhow!("Invalid context for API key")),
+    };
+    let mut headers = vec![("Content-Type".to_string(), "application/json".to_string())];
+    if let Some(api_key) = api_key {
+        headers.push(("Authorization".to_string(), format!("Bearer {}", api_key)));
     };
     let outgoing_request = OutgoingHttpRequest {
         method: "POST".to_string(),
         version: None,
         url: endpoint.to_string(),
-        headers: HashMap::from_iter(vec![
-            ("Content-Type".to_string(), "application/json".to_string()),
-            ("Authorization".to_string(), format!("Bearer {}", api_key)),
-        ]),
+        headers: HashMap::from_iter(headers),
     };
     let body = serde_json::to_vec(&HttpClientAction::Http(outgoing_request))?;
     let bytes = serialize_without_none(request_data)?;
@@ -206,7 +211,7 @@ fn handle_generic_request<T: Serialize>(
             ProcessId::new(Some("http_client"), "distro", "sys"),
         ))
         .body(body)
-        .expects_response(30)
+        .expects_response(timeout.unwrap_or_else(|| DEFAULT_TIMEOUT_SECONDS) as u64)
         .context(vec![context])
         .blob(LazyLoadBlob {
             mime: Some("application/json".to_string()),

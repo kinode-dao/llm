@@ -46,7 +46,21 @@ Run the tester script in your fakenode:
 lccp_tester:llm:kinode
    ```
 
-Within the tester, you can see how different requests and responses are handled.  
+Within the tester, you can see how different requests and responses are handled.
+
+### Running local LLMs with Llamafile
+
+TODO
+
+https://github.com/Mozilla-Ocho/llamafile
+
+```
+m our@openai:openai:appattacc.os '{"RegisterOaiProviderEndpoint": {"endpoint": "http://127.0.0.1:8080/v1"}}'
+
+m our@openai:openai:appattacc.os '{"OaiProviderChat": {"model": "", "messages": [{"role": "user", "content": "Suggest a Shakespeare play for me to read. Be concise."}]}}' -a 60
+
+kit i openai:openai:appattacc.os '{"OaiProviderChat": {"model": "", "messages": [{"role": "user", "content": "Suggest a Shakespeare play for me to read."}]}}' -p 8081
+```
 
 ## Online APIs
 
