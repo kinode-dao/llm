@@ -5,7 +5,7 @@ use kinode_process_lib::{
     println, Address, LazyLoadBlob, ProcessId, Request, Response,
 };
 use llm_interface::openai::{
-    ChatResponse, LLMRequest, LLMResponse, RegisterApiKeyRequest,
+    ChatResponse, ErrorResponse, LLMRequest, LLMResponse, RegisterApiKeyRequest, RegisterEndpointRequest,
 };
 use serde::Serialize;
 use std::{collections::HashMap, vec};
@@ -63,6 +63,7 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
     match &request {
         LLMRequest::RegisterOpenaiApiKey(api_request) => register_openai_api_key(api_request, state),
         LLMRequest::RegisterGroqApiKey(api_request) => register_groq_api_key(api_request, state),
+        LLMRequest::RegisterOaiProviderEndpoint(endpoint_request) => register_oai_provider_endpoint(endpoint_request, state),
         LLMRequest::Embedding(embedding_request) => {
             let endpoint = format!("{}/embeddings", OPENAI_BASE_URL);
             handle_generic_request(embedding_request, state, context, &endpoint)
@@ -78,6 +79,24 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
         LLMRequest::ChatImage(chat_image_request) => {
             let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
             handle_generic_request(chat_image_request, state, context, &endpoint)
+        }
+        LLMRequest::OaiProviderChat(chat_request) => {
+            let Some(s) = state else {
+                let err = "state must be set before calling OaiProviderChat";
+                Response::new().body(serde_json::to_vec(&LLMResponse::Err(
+                    ErrorResponse { error: err.to_string() }
+                ))?).send()?;
+                return Err(anyhow::anyhow!(err));
+            };
+            let Some(ref base_url) = s.oai_provider_base_url else {
+                let err = "oai_provider_base_url must be set before calling OaiProviderChat";
+                Response::new().body(serde_json::to_vec(&LLMResponse::Err(
+                    ErrorResponse { error: err.to_string() }
+                ))?).send()?;
+                return Err(anyhow::anyhow!(err));
+            };
+            let endpoint = format!("{}/chat/completions", base_url);
+            handle_generic_request(chat_request, state, context, &endpoint)
         }
     }
 }
@@ -118,6 +137,29 @@ fn register_groq_api_key(
         None => {
             let _state = State {
                 groq_api_key: api_key.to_string(),
+                ..State::default()
+            };
+            _state.save();
+            *state = Some(_state);
+        }
+    }
+    let _ = Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
+    Ok(())
+}
+
+fn register_oai_provider_endpoint(
+    endpoint_request: &RegisterEndpointRequest,
+    state: &mut Option<State>,
+) -> anyhow::Result<()> {
+    let endpoint = &endpoint_request.endpoint;
+    match state {
+        Some(_state) => {
+            _state.oai_provider_base_url = Some(endpoint.to_string());
+            _state.save();
+        }
+        None => {
+            let _state = State {
+                oai_provider_base_url: Some(endpoint.to_string()),
                 ..State::default()
             };
             _state.save();

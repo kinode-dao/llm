@@ -1145,7 +1145,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "kinode_process_lib",
- "llm_interface",
+ "llm_interface 0.1.0 (git+https://github.com/kinode-dao/llm/?branch=interface)",
  "multipart",
  "serde",
  "serde_json",
@@ -1175,6 +1175,17 @@ name = "linux-raw-sys"
 version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
+
+[[package]]
+name = "llm_interface"
+version = "0.1.0"
+source = "git+https://github.com/kinode-dao/llm/?branch=hf/interface#d517de166c761139c1c52bd403bfc27f3a046429"
+dependencies = [
+ "anyhow",
+ "derive_builder",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "llm_interface"
@@ -1381,7 +1392,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "kinode_process_lib",
- "llm_interface",
+ "llm_interface 0.1.0 (git+https://github.com/kinode-dao/llm/?branch=hf/interface)",
  "multipart",
  "serde",
  "serde_json",

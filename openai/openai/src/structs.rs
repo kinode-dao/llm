@@ -5,6 +5,7 @@ use kinode_process_lib::{get_state, set_state};
 pub struct State {
     pub openai_api_key: String,
     pub groq_api_key: String,
+    pub oai_provider_base_url: Option<String>,
 }
 
 impl State {
@@ -21,4 +22,3 @@ impl State {
         set_state(&serialized_state);
     }
 }
-

@@ -9,6 +9,8 @@ pub const EMBEDDING_CONTEXT: u8 = 1;
 pub const OPENAI_CHAT_CONTEXT: u8 = 2;
 pub const GROQ_CHAT_CONTEXT: u8 = 3;
 pub const CHAT_IMAGE_CONTEXT: u8 = 4;
+pub const REGISTER_ENDPOINT_CONTEXT: u8 = 5;
+pub const OAI_PROVIDER_CHAT_CONTEXT: u8 = 6;
 
 // TODO: Zena: We should probably derive this through a trait at some point?
 pub fn request_to_context(request: &LLMRequest) -> u8 {
@@ -18,6 +20,8 @@ pub fn request_to_context(request: &LLMRequest) -> u8 {
         LLMRequest::OpenaiChat(_) => OPENAI_CHAT_CONTEXT,
         LLMRequest::GroqChat(_) => GROQ_CHAT_CONTEXT,
         LLMRequest::ChatImage(_) => CHAT_IMAGE_CONTEXT,
+        LLMRequest::RegisterOaiProviderEndpoint(_) => REGISTER_ENDPOINT_CONTEXT,
+        LLMRequest::OaiProviderChat(_) => OAI_PROVIDER_CHAT_CONTEXT,
     }
 }
 
