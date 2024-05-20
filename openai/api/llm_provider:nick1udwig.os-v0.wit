@@ -1,0 +1,97 @@
+interface pkg {
+    type job-id = u64;
+    type model-name = string;
+    type error-message = string;
+
+    /// client (external) sends to router
+    variant client-request {
+        run-job(run-job-request-params),
+    }
+
+    /// client (external) receives from router
+    variant client-response {
+        run-job(result<job-id, error-message>),
+    }
+
+    /// driver sends to router
+    variant driver-request {
+        set-is-available(tuple<bool, model-name>),
+        /// job-update-request-blob in lazy-load-blob
+        job-update(job-update-request-params),
+    }
+
+    /// driver receives from router
+    variant driver-response {
+        /// ack
+        set-is-available,
+        /// ack
+        job-update,
+    }
+
+    /// router sends to driver
+    variant router-request {
+        run-job(tuple<job-id, run-job-request-params>),
+        query-ready,
+    }
+
+    /// router receives from driver
+    variant router-response {
+        run-job(result<job-id, error-message>),
+        query-ready(bool),
+    }
+
+    /// router sends to client (external)
+    variant router-client-request {
+        /// job-update-request-blob in lazy-load-blob
+        job-update(job-update-request-params),
+    }
+
+    /// router receives from client (external)
+    variant router-client-response {
+        /// ack
+        job-update,
+    }
+
+    record run-job-request-params {
+        model: string,
+        prompt: string,
+        seed: option<u32>,
+    }
+
+    record job-update-request-params {
+        job-id: job-id,
+        is-final: bool,
+        signature: option<u64>,
+    }
+
+    //record job-update-request-blob {
+    //}
+}
+
+interface driver {
+    use pkg.{
+        driver-request,
+        driver-response,
+        router-request,
+        router-response,
+    };
+}
+
+interface router {
+    use pkg.{
+        client-request,
+        client-response,
+        driver-request,
+        driver-response,
+        router-request,
+        router-response,
+        run-job-request-params,
+        job-update-request-params,
+    };
+}
+
+world llm-provider-nick1udwig-dot-os-v0 {
+    import driver;
+    import router;
+    include process;
+}

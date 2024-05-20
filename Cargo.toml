@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "lccp/lccp",
     "openai/openai",
+    "openai/router",
 ]
 
 [profile.release]

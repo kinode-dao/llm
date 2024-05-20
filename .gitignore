@@ -1,6 +1,7 @@
 */target
 */*/target/
 **/pkg/*.wasm
+**/pkg/*.zip
 **/pkg/ui
 */*.swp
 */*.swo
@@ -15,5 +16,4 @@
 /target
 **/.DS_Store
 **/.vscode/
-
-
+*.swp
