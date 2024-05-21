@@ -13,6 +13,7 @@ use crate::kinode::process::router::{
 };
 use kinode_process_lib::{await_message, call_init, get_typed_state, println, set_state, Address, ProcessId, Request, Response};
 
+
 const DEFAULT_DRIVER_PROCESS_ID: &str = "driver:llm_provider:nick1udwig.os";
 const DEFAULT_QUEUE_RESPONSE_TIMEOUT_SECONDS: u8 = 5;
 const DEFAULT_SERVE_TIMEOUT_SECONDS: u16 = 60;
@@ -21,21 +22,21 @@ wit_bindgen::generate!({
     path: "target/wit",
     world: "llm-provider-nick1udwig-dot-os-v0",
     generate_unused_types: true,
-    additional_derives: [serde::Deserialize, serde::Serialize],
+    additional_derives: [serde::Deserialize, serde::Serialize, process_macros::SerdeJsonInto],
 });
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
 enum Req {
     ClientRequest(ClientRequest),
     DriverRequest(DriverRequest),
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
 enum Res {
     RouterResponse(RouterResponse),
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
 struct State {
     driver_process_id: Option<ProcessId>,
     available_drivers: HashMap<String, String>,  // driver node to model
@@ -47,7 +48,7 @@ struct State {
     pub serve_timeout_seconds: u16, // TODO
 }
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
 struct JobQuery {
     job: RunJobRequestParams,
     num_rejections: u32,
@@ -76,7 +77,7 @@ impl State {
     }
 
     fn load() -> Self {
-        get_typed_state(|bytes| Ok(serde_json::from_slice::<State>(bytes)?))
+        get_typed_state(|bytes| Ok(bytes.try_into()?))
             .unwrap_or_default()
     }
 }
@@ -98,7 +99,7 @@ fn serve_job(
          (job_source.clone(), job_id.clone()),
      );
      Request::to(driver)
-         .body(serde_json::to_vec(&RouterRequest::RunJob((job_id, job)))?)
+         .body(RouterRequest::RunJob((job_id, job)))
          .inherit(true)
          .expects_response(5)  // TODO
          .send()?;
@@ -168,7 +169,7 @@ fn handle_client_request(
         ClientRequest::RunJob(job) => {
             let job_id: u64 = state.rng.gen();
             Response::new()
-                .body(serde_json::to_vec(&ClientResponse::RunJob(Ok(job_id.clone())))?)
+                .body(ClientResponse::RunJob(Ok(job_id.clone())))
                 .send()?;
             let num_hosting_model: Vec<(String, String)> = state.available_drivers
                 .iter()
@@ -204,7 +205,7 @@ fn handle_client_request(
                 }
                 let address = Address::new(member.clone(), process_id.clone());
                 Request::to(address.clone())
-                    .body(serde_json::to_vec(&RouterRequest::QueryReady)?)
+                    .body(RouterRequest::QueryReady)
                     .context(serde_json::to_vec(&(source.clone(), job_id))?)
                     .expects_response(state.queue_response_timeout_seconds as u64)
                     .send()?;
@@ -235,7 +236,7 @@ fn handle_driver_request(
                 }
             }
             Response::new()
-                .body(serde_json::to_vec(&DriverResponse::SetIsAvailable)?)
+                .body(DriverResponse::SetIsAvailable)
                 .send()?;
         }
         DriverRequest::JobUpdate(JobUpdateRequestParams { ref job_id, ref is_final, .. }) => {
@@ -246,8 +247,7 @@ fn handle_driver_request(
                 println!("job_id != expected_job_id: this should never occur! provider gave us wrong job back");
             }
             Request::to(job_source)
-                .body(serde_json::to_vec(driver_request)?)
-                //.body(message.body())
+                .body(driver_request)
                 .inherit(true)
                 .send()?;
             // TODO: log sigs
@@ -256,7 +256,7 @@ fn handle_driver_request(
                 state.save()?;
             }
             Response::new()
-                .body(serde_json::to_vec(&DriverResponse::JobUpdate)?)
+                .body(DriverResponse::JobUpdate)
                 .send()?;
         }
     }
@@ -311,18 +311,6 @@ fn handle_router_response(
     Ok(())
 }
 
-//fn handle_sequencer_response(state: &mut State) -> anyhow::Result<()> {
-//    let Some(LazyLoadBlob { ref bytes, .. }) = get_blob() else {
-//        return Err(anyhow::anyhow!("fetch_chain_state didn't get back blob"));
-//    };
-//    let Ok(SequencerResponse::Read(ReadResponse::All(new_dao_state))) = serde_json::from_slice(bytes) else {
-//        return Err(anyhow::anyhow!("fetch_chain_state got wrong Response back"));
-//    };
-//    state.on_chain_state = new_dao_state.clone();
-//    state.save()?;
-//    Ok(())
-//}
-
 fn handle_message(
     our: &Address,
     state: &mut State,
@@ -358,7 +346,7 @@ fn handle_message(
     };
 
     if message.is_request() {
-        return match serde_json::from_slice(message.body())? {
+        return match message.body().try_into()? {
             Req::ClientRequest(ref client_request) => handle_client_request(
                 our,
                 message.source(),
@@ -374,7 +362,7 @@ fn handle_message(
         };
     }
 
-    match serde_json::from_slice(message.body())? {
+    match message.body().try_into()? {
         Res::RouterResponse(ref router_response) => handle_router_response(
             our,
             message.source(),
