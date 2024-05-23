@@ -1,5 +1,5 @@
 use crate::kinode::process::driver::{
-    AdminRequest, AdminResponse,
+    AdminRequest,
     ClientRequest,
     DriverRequest, DriverResponse,
     LocalDriver,
@@ -151,6 +151,7 @@ fn run_local_job(
             .body(ClientRequest::RunJob(job.clone()))
             .send()?;
         state.outstanding_job = Some(source.process.clone());
+        state.save()?;
     }
 
     Ok(())
@@ -208,7 +209,7 @@ fn run_job(
             .send()?;
         return Err(anyhow::anyhow!(err));
     }
-    let Some(ref local_driver) = state.local_driver else {
+    let Some(ref _local_driver) = state.local_driver else {
         // deny Request: cannot serve it
         let err = "got request from router, but don't have a local llm";
         Response::new()
@@ -231,11 +232,12 @@ fn run_job(
         .expects_response(5) // TODO
         .send()?;
 
-    state.outstanding_job = None;
     if state.local_driver.as_ref().is_some_and(|ld| ld.is_public) {
         println!("setting ready again");
         set_is_available(true, state)?
     }
+    state.outstanding_job = None;
+    state.save()?;
 
     Ok(())
 }
@@ -255,6 +257,7 @@ fn handle_admin_request(
     match admin_request {
         AdminRequest::SetLocalDriver(ref local_driver) => {
             state.local_driver = Some(local_driver.clone());
+            state.save()?;
             if local_driver.is_public {
                 set_is_available(true, state)?
             }
@@ -270,6 +273,7 @@ fn handle_admin_request(
             if let Some(ref node) = router.node {
                 state.router_node = Some(node.clone());
             };
+            state.save()?;
             if state.local_driver.as_ref().is_some_and(|ld| ld.is_public) {
                 set_is_available(true, state)?
             }
@@ -328,11 +332,12 @@ fn handle_to_client_request(
                 .body(to_client_request)
                 .inherit(true)
                 .send()?;
-            state.outstanding_job = None;
             if state.local_driver.as_ref().is_some_and(|ld| ld.is_public) {
                 println!("setting ready again");
                 set_is_available(true, state)?
             }
+            state.outstanding_job = None;
+            state.save()?;
         }
     }
     Ok(())
@@ -340,7 +345,6 @@ fn handle_to_client_request(
 
 fn handle_driver_response(
     driver_response: &DriverResponse,
-    state: &mut State,
 ) -> anyhow::Result<()> {
     match driver_response {
         DriverResponse::SetIsAvailable => {}
@@ -350,7 +354,6 @@ fn handle_driver_response(
 
 fn handle_to_client_response(
     to_client_response: &ToClientResponse,
-    state: &mut State,
 ) -> anyhow::Result<()> {
     match to_client_response {
         ToClientResponse::JobUpdate => {}
@@ -394,11 +397,9 @@ fn handle_message(
     match message.body().try_into()? {
         Res::DriverResponse(ref driver_response) => handle_driver_response(
             driver_response,
-            state,
         ),
         Res::ToClientResponse(ref to_client_response) => handle_to_client_response(
             to_client_response,
-            state,
         ),
     }
 }

@@ -3,11 +3,11 @@
 **/pkg/*.wasm
 **/pkg/*.zip
 **/pkg/ui
-*/*.swp
-*/*.swo
-*/*/wasi_snapshot_preview1.wasm
-*/*/wit/
-*/*/process_env
+**.swp
+**.swo
+**/wasi_snapshot_preview1.wasm
+**/wit/
+**/process_env
 */ui/dist
 */ui/node_modules
 */node_modules

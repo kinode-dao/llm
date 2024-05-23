@@ -1,6 +1,6 @@
-use crate::kinode::process::driver::{ClientRequest, ClientResponse, RunJobRequestParams, ToClientRequest, ToClientResponse};
+use crate::kinode::process::driver::{ClientRequest, ClientResponse, RunJobRequestParams, ToClientRequest};
 use kinode_process_lib::{
-    await_next_message_body, call_init, get_blob, println, Address, OnExit, Request,
+    await_next_message_body, call_init, get_blob, println, Address, Request,
 };
 
 wit_bindgen::generate!({
@@ -11,9 +11,7 @@ wit_bindgen::generate!({
 });
 
 const PUBLISHER: &str = "nick1udwig.os";
-//const PROCESS_NAME: &str = "driver";
 const SCRIPT_NAME: &str = "run_job";
-const ROUTER_PATH: &str = "llm_provider:nick1udwig.os/pkg/router.wasm";
 
 call_init!(init);
 fn init(our: Address) {

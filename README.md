@@ -1,4 +1,4 @@
-# LLM Provider
+# LLM
 
 Kinode processes for interacting with & serving LLMs.
 
@@ -76,7 +76,7 @@ kit f -r ${KINODE_PATH}/kinode -h /tmp/kinode-fake-node-3 -p $CLIENT_PORT -f fak
 ### Build and install llm provider.
 
 ```
-cd ${KINODE_PATH}/llm/openai
+cd ${KINODE_PATH}/llm
 kit b
 kit s $ROUTER_PORT && kit s $DRIVER_PORT && kit s $CLIENT_PORT
 ```
@@ -84,21 +84,20 @@ kit s $ROUTER_PORT && kit s $DRIVER_PORT && kit s $CLIENT_PORT
 ### Configure routers, drivers, clients.
 
 ```
-# Start a router.
+# Start a router (router node terminal).
 admin:llm_provider:nick1udwig.os "StartRouter"
 
-# Set driver to use router.
+# Set driver to use router (driver node terminal).
 admin:llm_provider:nick1udwig.os {"SetRouter": {"node": "fake.dev"}}
 admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_public": true}}
 
-# Send jobs from inside Kinode (client).
+# Send jobs from inside Kinode (client node terminal).
 admin:llm_provider:nick1udwig.os {"SetRouter": {"node": "fake.dev"}}
 run_job:llm_provider:nick1udwig.os llama3 How much wood could a woodchuck chuck? Be concise.
 
-# Send jobs from outside Kinode (client).
+# Send jobs from outside Kinode (unix terminal).
 kit i driver:llm_provider:nick1udwig.os '{"RunJob": {"model": "llama3-8b", "prompt": "What is the funniest book in the Bible? Be concise."}}' -p $CLIENT_PORT
 ```
 
-## Repo structure
-
+## Architecture
 

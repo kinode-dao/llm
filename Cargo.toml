@@ -1,12 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
-    "lccp/lccp",
-    "openai/admin",
-    "openai/driver",
-    "openai/openai",
-    "openai/router",
-    "openai/run_job",
+    "admin",
+    "driver",
+    "openai",
+    "router",
+    "run_job",
 ]
 
 [profile.release]

@@ -680,7 +680,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "kinode_process_lib 0.6.1",
- "llm_interface 0.1.0 (git+https://github.com/kinode-dao/llm/?branch=hf/interface)",
+ "llm_interface",
  "process_macros",
  "rand 0.8.5",
  "rand_pcg 0.3.1",
@@ -1193,20 +1193,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "lccp"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bincode",
- "kinode_process_lib 0.6.0",
- "llm_interface 0.1.0 (git+https://github.com/kinode-dao/llm/?branch=interface)",
- "multipart",
- "serde",
- "serde_json",
- "wit-bindgen 0.17.0",
-]
-
-[[package]]
 name = "leb128"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1234,17 +1220,6 @@ checksum = "01cda141df6706de531b6c46c3a33ecca755538219bd484262fa09410c13539c"
 name = "llm_interface"
 version = "0.1.0"
 source = "git+https://github.com/kinode-dao/llm/?branch=hf/interface#d517de166c761139c1c52bd403bfc27f3a046429"
-dependencies = [
- "anyhow",
- "derive_builder",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "llm_interface"
-version = "0.1.0"
-source = "git+https://github.com/kinode-dao/llm/?branch=interface#2bd3067f13e319a7128481598a7e5ae248a924e5"
 dependencies = [
  "anyhow",
  "derive_builder",
@@ -1446,7 +1421,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "kinode_process_lib 0.6.0",
- "llm_interface 0.1.0 (git+https://github.com/kinode-dao/llm/?branch=hf/interface)",
+ "llm_interface",
  "multipart",
  "serde",
  "serde_json",
