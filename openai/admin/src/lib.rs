@@ -43,7 +43,7 @@ fn init(our: Address) {
                 false,
             ).unwrap();
         }
-        Ok(Req::DriverAdminRequest(DriverAdminRequest::SetLocalDriver(_))) => {
+        Ok(Req::DriverAdminRequest(_)) => {
             let driver_process: Address = format!("our@driver:{}", our.package_id())
                 .parse()
                 .unwrap();

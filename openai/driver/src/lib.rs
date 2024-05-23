@@ -16,8 +16,7 @@ use kinode_process_lib::{
 use llm_interface::openai::{ChatRequestBuilder, ChatResponse, LLMRequest, LLMResponse, Message as LLMMessage};
 
 const DEFAULT_ROUTER_PROCESS_ID: &str = "router:llm_provider:nick1udwig.os";
-const DEFAULT_ROUTER_NODE: &str = "fake.dev";  // NOTE: this should be changed
-//const DEFAULT_ROUTER_NODE: &str = "nick1udwig.os";  // NOTE: this should be changed
+const DEFAULT_ROUTER_NODE: &str = "nick1udwig.os";  // NOTE: this should be changed
 const DEFAULT_TIMEOUT_SECONDS: u64 = 60;
 
 wit_bindgen::generate!({
@@ -257,6 +256,21 @@ fn handle_admin_request(
         AdminRequest::SetLocalDriver(ref local_driver) => {
             state.local_driver = Some(local_driver.clone());
             if local_driver.is_public {
+                set_is_available(true, state)?
+            }
+        }
+        AdminRequest::SetRouter(ref router) => {
+            if let Some(ref process_id) = router.process_id {
+                state.router_process_id = Some(ProcessId {
+                    process_name: process_id.process_name.clone(),
+                    package_name: process_id.package_name.clone(),
+                    publisher_node: process_id.publisher_node.clone(),
+                });
+            };
+            if let Some(ref node) = router.node {
+                state.router_node = Some(node.clone());
+            };
+            if state.local_driver.as_ref().is_some_and(|ld| ld.is_public) {
                 set_is_available(true, state)?
             }
         }

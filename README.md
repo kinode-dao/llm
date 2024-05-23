@@ -1,98 +1,104 @@
-# LLM
+# LLM Provider
 
-Kinode process for interacting with LLMs.
+Kinode processes for interacting with & serving LLMs.
 
-- [LLM](#llm)
-  - [Local LLMs](#local-llms)
-    - [Running Local LLMs with Messages](#running-local-llms-with-messages)
-    - [Running Local LLMS with Test Scripts](#running-local-llms-with-test-scripts)
-  - [Online APIs](#online-apis)
-    - [Calling APIs Through Messages](#calling-apis-through-messages)
-    - [Calling APIs Through Test Scripts](#calling-apis-through-test-scripts)
+## Usage
 
-## Local LLMs
-
-To run the lccp component, follow these steps:
-
-***Terminal 1:***  Download `llama.cpp` from the GitHub repository: <https://github.com/ggerganov/llama.cpp>
-
-   ```bash
-   cd llama.cpp
-   make
-   ./server -m ../llama.cpp-sharding.cpp/phi2.gguf --embedding --port 3000
-   ```
-
-***Terminal 2*** Start a fake node by running:
-
-   ```bash
-   kit f
-   ```
-
-***Terminal 3*** Build and start the lccp service:
-
-   ```bash
-   kit bs lccp/
-   ```
-
-### Running Local LLMs with Messages
-
-TODO
-
-### Running Local LLMS with Test Scripts
-
-Run the tester script in your fakenode:
-
-   ```bash
-lccp_tester:llm:kinode
-   ```
-
-Within the tester, you can see how different requests and responses are handled.
-
-### Running local LLMs with Llamafile
-
-TODO
-
-https://github.com/Mozilla-Ocho/llamafile
+### Get llamafile & your favorite LLM in GGUF format.
 
 ```
-m our@openai:openai:appattacc.os '{"RegisterOaiProviderEndpoint": {"endpoint": "http://127.0.0.1:8080/v1"}}'
+# Get llamafile.
+export LLAMAFILE_PATH=$(realpath ~/llms)
+mkdir -p $LLAMAFILE_PATH
+cd $LLAMAFILE_PATH
 
-m our@openai:openai:appattacc.os '{"OaiProviderChat": {"model": "", "messages": [{"role": "user", "content": "Suggest a Shakespeare play for me to read. Be concise."}]}}' -a 60
+export LLAMAFILE_VERSION=0.8.4
+curl -L -o llamafile-${LLAMAFILE_VERSION} https://github.com/Mozilla-Ocho/llamafile/releases/download/${LLAMAFILE_VERSION}/llamafile-${LLAMAFILE_VERSION}
+chmod +x llamafile-${LLAMAFILE_VERSION}
 
-kit i openai:openai:appattacc.os '{"OaiProviderChat": {"model": "", "messages": [{"role": "user", "content": "Suggest a Shakespeare play for me to read."}]}}' -p 8081
+# Get your favorite LLM in GGUF format.
+# E.g. Llama-3-8B-Instruct
+cd $LLAMAFILE_PATH
+curl -L -o Meta-Llama-3-8B-Instruct-Q8_0.gguf https://huggingface.co/lmstudio-community/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct-Q8_0.gguf?download=true
+
+# Serve the LLM with llamafile.
+# Note the port; below we assume it is 8080.
+cd $LLAMAFILE_PATH
+./llamafile-${LLAMAFILE_VERSION} -m Meta-Llama-3-8B-Instruct-Q8_0.gguf --server --mlock --nobrowser
+export LLAMAFILE_PORT=8080
 ```
 
-## Online APIs
+### Get kit & Kinode core develop (requires 0.8.0).
 
-***Terminal 1*** Start a fake node by running:
+```
+# Get kit.
+cargo install --git https://github.com/kinode-dao/kit --branch develop
 
-   ```bash
-   kit f
-   ```
+# Get Kinode core develop.
+export KINODE_PATH=$(realpath ~/kinode)
+cd $KINODE_PATH
 
-***Terminal 2*** Build and start the openai service:
+git clone git@github.com:kinode-dao/kinode.git
+cd kinode
+git checkout develop
 
-   ```bash
-   kit bs openai/
-   ```
+# Get llm_provider.
+cd $KINODE_PATH
+git clone git@github.com:kinode-dao/llm
+cd llm
+git checkout hf/llm-provider
+```
 
-### Calling APIs Through Messages
+### Start fakenodes.
 
-TODO
+```
+# Start some fakenodes.
+# The first will be the router.
+# The second the driver connected to the llamafile server.
+# The third the client sending a request -- routed through:
+# * third's driver,
+# * first's router,
+# * second's driver,
+# * llamafile,
+# * back again.
+export ROUTER_PORT=8081
+export DRIVER_PORT=8082
+export CLIENT_PORT=8083
+kit f --runtime-path ${KINODE_PATH}/kinode --port $ROUTER_PORT
 
-### Calling APIs Through Test Scripts
+# In a new terminal:
+kit f -r ${KINODE_PATH}/kinode -h /tmp/kinode-fake-node-2 -p $DRIVER_PORT -f fake2.dev
 
-Run the tester script in your fakenode:
+# In a third terminal:
+kit f -r ${KINODE_PATH}/kinode -h /tmp/kinode-fake-node-3 -p $CLIENT_PORT -f fake3.dev
+```
 
-***Terminal 1*** Run the tester script
+### Build and install llm provider.
 
-   ```bash
-openai_tester:llm:kinode
-   ```
+```
+cd ${KINODE_PATH}/llm/openai
+kit b
+kit s $ROUTER_PORT && kit s $DRIVER_PORT && kit s $CLIENT_PORT
+```
 
-Within the tester, you can see how different requests and responses are handled.
+### Configure routers, drivers, clients.
 
-## TODOS
+```
+# Start a router.
+admin:llm_provider:nick1udwig.os "StartRouter"
 
-- [ ] Make a clean interface. This is a higher level question regarding process communication.
-- [ ] Cleaner call functions.
+# Set driver to use router.
+admin:llm_provider:nick1udwig.os {"SetRouter": {"node": "fake.dev"}}
+admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_public": true}}
+
+# Send jobs from inside Kinode (client).
+admin:llm_provider:nick1udwig.os {"SetRouter": {"node": "fake.dev"}}
+run_job:llm_provider:nick1udwig.os llama3 How much wood could a woodchuck chuck? Be concise.
+
+# Send jobs from outside Kinode (client).
+kit i driver:llm_provider:nick1udwig.os '{"RunJob": {"model": "llama3-8b", "prompt": "What is the funniest book in the Bible? Be concise."}}' -p $CLIENT_PORT
+```
+
+## Repo structure
+
+

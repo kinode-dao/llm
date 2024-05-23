@@ -87,17 +87,28 @@ interface admin {
 }
 
 interface driver {
+    use standard.{
+        process-id,
+    };
+
     variant admin-request {
-        set-local-driver(local-driver)
+        set-local-driver(local-driver),
+        set-router(set-router-request),
     }
 
     variant admin-response {
-        set-provider
+        set-local-driver,
+        set-router,
     }
 
     record local-driver {
         model: string,
         is-public: bool,
+    }
+
+    record set-router-request {
+        process-id: option<process-id>,
+        node: option<string>,
     }
 
     use pkg.{
