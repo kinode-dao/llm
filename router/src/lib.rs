@@ -176,15 +176,21 @@ fn handle_client_request(
             Response::new()
                 .body(ClientResponse::RunJob(Ok(job_id.clone())))
                 .send()?;
+            // TODO: discriminate based on model here and in
+            //  DriverRequest::SetIsAvailable, below
+            // let num_hosting_model: Vec<(String, String)> = state.available_drivers
+            //     .iter()
+            //     .filter_map(|(node, model)| {
+            //         if &job.model != model {
+            //             None
+            //         } else {
+            //             Some((node.clone(), model.clone()))
+            //         }
+            //     })
+            //     .collect();
             let num_hosting_model: Vec<(String, String)> = state.available_drivers
                 .iter()
-                .filter_map(|(node, model)| {
-                    if &job.model != model {
-                        None
-                    } else {
-                        Some((node.clone(), model.clone()))
-                    }
-                })
+                .map(|(n, m)| (n.clone(), m.clone()))
                 .collect();
             if num_hosting_model.is_empty() {
                 // no available drivers -> add to queue
@@ -204,10 +210,10 @@ fn handle_client_request(
                 num_rejections: 0,
                 num_queried: num_hosting_model.len() as u32,
             });
-            for (member, model) in permute(num_hosting_model, &mut state.rng) {
-                if job.model != model {
-                    continue;
-                }
+            for (member, _model) in permute(num_hosting_model, &mut state.rng) {
+                // if job.model != model {
+                //     continue;
+                // }
                 let address = Address::new(member.clone(), process_id.clone());
                 Request::to(address.clone())
                     .body(RouterRequest::QueryReady)
