@@ -1,4 +1,4 @@
-![240523-remote](https://github.com/kinode-dao/llm/assets/79381743/68f4aa27-1499-40bf-9df9-be920a759313)![240523-local](https://github.com/kinode-dao/llm/assets/79381743/7a403479-e4af-41b3-9fbb-d37c67dd20a7)![240523-local](https://github.com/kinode-dao/llm/assets/79381743/0806f949-0736-4e96-9ea9-a01871f2cfd0)# LLM
+# LLM
 
 Kinode processes for interacting with & serving LLMs.
 
