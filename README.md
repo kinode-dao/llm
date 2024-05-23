@@ -116,8 +116,8 @@ admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_p
 ```
 `driver` will serve the Request locally by passing it to `openai:llm_provider:nick1udwig.os`, which in turn passes it to the registered OpenAI API provider (here, a llamafile server).
 
-![240523-local](https://github.com/kinode-dao/llm/assets/79381743/5f071ed2-91be-45e1-81d3-0de6a176d4fd)
+![240523-local](https://github.com/kinode-dao/llm/assets/79381743/47b1c23c-03db-4076-a61f-5e037c66d848)
 
 If not connected to an LLM, `driver` will contact the `router_node` it has been set to coordinate with and that `router` will forward the Request to a `driver` that has registered as serving the appropriate model.
 
-![240523-remote](https://github.com/kinode-dao/llm/assets/79381743/8bd2006c-9bae-434b-b2d5-90ceeb99eb4f)
+![240523-remote](https://github.com/kinode-dao/llm/assets/79381743/3f87f855-81db-4c08-ad84-a63827c23b16)
