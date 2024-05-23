@@ -1,0 +1,28 @@
+[
+    {
+        "process_name": "openai",
+        "process_wasm_path": "/openai.wasm",
+        "on_exit": "Restart",
+        "request_networking": false,
+        "request_capabilities": [
+            "http_client:distro:sys",
+            "http_server:distro:sys"
+        ],
+        "grant_capabilities": [
+            "http_client:distro:sys",
+            "http_server:distro:sys"
+        ],
+        "public": true
+    },
+    {
+        "process_name": "driver",
+        "process_wasm_path": "/driver.wasm",
+        "on_exit": "Restart",
+        "request_networking": true,
+        "request_capabilities": [
+            "http_server:distro:sys"
+        ],
+        "grant_capabilities": [],
+        "public": true
+    }
+]

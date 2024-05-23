@@ -1,0 +1,26 @@
+{
+    "admin.wasm": {
+        "root": false,
+        "public": false,
+        "request_networking": true,
+        "request_capabilities": [
+            "driver:llm_provider:nick1udwig.os",
+            "vfs:distro:sys"
+        ],
+        "grant_capabilities": [
+            "driver:llm_provider:nick1udwig.os",
+            "vfs:distro:sys"
+        ]
+    },
+    "run_job.wasm": {
+        "root": false,
+        "public": false,
+        "request_networking": false,
+        "request_capabilities": [
+            "driver:llm_provider:nick1udwig.os"
+        ],
+        "grant_capabilities": [
+            "driver:llm_provider:nick1udwig.os"
+        ]
+    }
+}

@@ -1,11 +1,11 @@
 {
-    "name": "lccp",
-    "description": "",
+    "name": "OpenAI-API LLM Provider",
+    "description": "Expose a locally running LLM or use a remote one",
     "image": "",
     "properties": {
-        "package_name": "llm",
+        "package_name": "llm_provider",
         "current_version": "0.1.0",
-        "publisher": "kinode",
+        "publisher": "nick1udwig.os",
         "mirrors": [],
         "code_hashes": {
             "0.1.0": ""
