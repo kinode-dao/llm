@@ -121,3 +121,44 @@ admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_p
 If not connected to an LLM, `driver` will contact the `router_node` it has been set to coordinate with and that `router` will forward the Request to a `driver` that has registered as serving the appropriate model.
 
 ![240523-remote](https://github.com/kinode-dao/llm/assets/79381743/3f87f855-81db-4c08-ad84-a63827c23b16)
+
+## Future work / extensions
+
+### On-chain coordination, payment, etc.
+
+There are multiple ways on-chain compute & data could be used here.
+A few examples are:
+1. Payment for services rendered,
+2. Coordination of router(s) and drivers to improve quality of service by kicking out bad actors,
+3. Gating based on on-chain data.
+
+An example of 2 can be seen in the following repos:
+* https://github.com/nick1udwig/provider-dao-contract
+* https://github.com/nick1udwig/provider_dao_router
+* https://github.com/nick1udwig/comfyui_provider
+* https://github.com/nick1udwig/comfyui_client
+
+### Gate based on arbitrary conditions
+
+The `router` is the natural place to gate requests based on arbitrary conditions.
+Upon receiving a `ClientRequest::RunJob`, execute arbitrary logic to determine if the requestor should be served or not.
+This logic might look like:
+1. Comparison with an in-memory `Vec` of allowed nodes,
+2. Checking if the requestor holds a certain NFT,
+3. Checking if the requestor has paid into an escrow contract,
+to list a few examples.
+
+### Chunked/non-final `JobUpdate`s
+
+Currently, one `JobUpdate` is sent as a result of a request.
+That is the final output of the LLM.
+Instead, `JobUpdate`s could be sent as they arrive and a job would only be considered complete once `is_final = true`.
+This gets around a limitation of the current system which is that the request must be completed within 60s.
+
+### Queue for driver
+
+The `driver` currently only allows one outstanding job at a time.
+
+### Discriminate based on model
+
+Currently the code the discriminate based on model (i.e. only pass requests specifying a given model to providers serving that specific model) is commented out.
