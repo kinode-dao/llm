@@ -22,11 +22,8 @@ const DEFAULT_TIMEOUT_SECONDS: u16 = 30;
 const OAI_PROVIDER_TIMEOUT_SECONDS: u16 = 60;
 
 wit_bindgen::generate!({
-    path: "wit",
+    path: "target/wit",
     world: "process",
-    exports: {
-        world: Component,
-    },
 });
 
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
