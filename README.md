@@ -1,4 +1,4 @@
-# LLM
+![240523-remote](https://github.com/kinode-dao/llm/assets/79381743/68f4aa27-1499-40bf-9df9-be920a759313)![240523-local](https://github.com/kinode-dao/llm/assets/79381743/7a403479-e4af-41b3-9fbb-d37c67dd20a7)![240523-local](https://github.com/kinode-dao/llm/assets/79381743/0806f949-0736-4e96-9ea9-a01871f2cfd0)# LLM
 
 Kinode processes for interacting with & serving LLMs.
 
@@ -88,7 +88,14 @@ kit s $ROUTER_PORT && kit s $DRIVER_PORT && kit s $CLIENT_PORT
 admin:llm_provider:nick1udwig.os "StartRouter"
 
 # Set driver to use router (driver node terminal).
+# All drivers must point to the router: both clients and providers.
 admin:llm_provider:nick1udwig.os {"SetRouter": {"node": "fake.dev"}}
+
+# Set an OpenAI API provider (driver node terminal).
+# NOTE: Replace the `8080` port here with $LLAMAFILE_PORT
+m our@openai:llm_provider:nick1udwig.os '{"RegisterOaiProviderEndpoint": {"endpoint": "http://127.0.0.1:8080/v1"}}'
+
+# Set driver to use router (driver node terminal).
 admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_public": true}}
 
 # Send jobs from inside Kinode (client node terminal).
@@ -101,3 +108,16 @@ kit i driver:llm_provider:nick1udwig.os '{"RunJob": {"model": "llama3-8b", "prom
 
 ## Architecture
 
+Clients send Requests to the `driver:llm_provider:nick1udwig.os` process.
+If connected to an LLM, e.g. via
+```
+m our@openai:llm_provider:nick1udwig.os '{"RegisterOaiProviderEndpoint": {"endpoint": "http://127.0.0.1:8080/v1"}}'
+admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_public": true}}
+```
+`driver` will serve the Request locally by passing it to `openai:llm_provider:nick1udwig.os`, which in turn passes it to the registered OpenAI API provider (here, a llamafile server).
+
+![240523-local](https://github.com/kinode-dao/llm/assets/79381743/5f071ed2-91be-45e1-81d3-0de6a176d4fd)
+
+If not connected to an LLM, `driver` will contact the `router_node` it has been set to coordinate with and that `router` will forward the Request to a `driver` that has registered as serving the appropriate model.
+
+![240523-remote](https://github.com/kinode-dao/llm/assets/79381743/8bd2006c-9bae-434b-b2d5-90ceeb99eb4f)
