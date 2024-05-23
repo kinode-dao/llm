@@ -25,7 +25,6 @@ curl -L -o Meta-Llama-3-8B-Instruct-Q8_0.gguf https://huggingface.co/lmstudio-co
 # Note the port; below we assume it is 8080.
 cd $LLAMAFILE_PATH
 ./llamafile-${LLAMAFILE_VERSION} -m Meta-Llama-3-8B-Instruct-Q8_0.gguf --server --mlock --nobrowser
-export LLAMAFILE_PORT=8080
 ```
 
 ### Get kit & Kinode core develop (requires 0.8.0).
@@ -36,6 +35,7 @@ cargo install --git https://github.com/kinode-dao/kit --branch develop
 
 # Get Kinode core develop.
 export KINODE_PATH=$(realpath ~/kinode)
+mkdir -p $KINODE_PATH
 cd $KINODE_PATH
 
 git clone git@github.com:kinode-dao/kinode.git
@@ -61,15 +61,25 @@ git checkout hf/llm-provider
 # * second's driver,
 # * llamafile,
 # * back again.
+export KINODE_PATH=$(realpath ~/kinode)
 export ROUTER_PORT=8081
 export DRIVER_PORT=8082
 export CLIENT_PORT=8083
+# The first fake node to be booted will compile Kinode core, which will take some time.
 kit f --runtime-path ${KINODE_PATH}/kinode --port $ROUTER_PORT
 
 # In a new terminal:
+export KINODE_PATH=$(realpath ~/kinode)
+export ROUTER_PORT=8081
+export DRIVER_PORT=8082
+export CLIENT_PORT=8083
 kit f -r ${KINODE_PATH}/kinode -h /tmp/kinode-fake-node-2 -p $DRIVER_PORT -f fake2.dev
 
 # In a third terminal:
+export KINODE_PATH=$(realpath ~/kinode)
+export ROUTER_PORT=8081
+export DRIVER_PORT=8082
+export CLIENT_PORT=8083
 kit f -r ${KINODE_PATH}/kinode -h /tmp/kinode-fake-node-3 -p $CLIENT_PORT -f fake3.dev
 ```
 
@@ -78,7 +88,7 @@ kit f -r ${KINODE_PATH}/kinode -h /tmp/kinode-fake-node-3 -p $CLIENT_PORT -f fak
 ```
 cd ${KINODE_PATH}/llm
 kit b
-kit s $ROUTER_PORT && kit s $DRIVER_PORT && kit s $CLIENT_PORT
+kit s -p $ROUTER_PORT && kit s -p $DRIVER_PORT && kit s -p $CLIENT_PORT
 ```
 
 ### Configure routers, drivers, clients.
@@ -101,9 +111,6 @@ admin:llm_provider:nick1udwig.os {"SetLocalDriver": {"model": "llama3-8b", "is_p
 # Send jobs from inside Kinode (client node terminal).
 admin:llm_provider:nick1udwig.os {"SetRouter": {"node": "fake.dev"}}
 run_job:llm_provider:nick1udwig.os llama3 How much wood could a woodchuck chuck? Be concise.
-
-# Send jobs from outside Kinode (unix terminal).
-kit i driver:llm_provider:nick1udwig.os '{"RunJob": {"model": "llama3-8b", "prompt": "What is the funniest book in the Bible? Be concise."}}' -p $CLIENT_PORT
 ```
 
 ## Architecture
