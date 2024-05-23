@@ -7,6 +7,7 @@ use crate::kinode::process::router::{
     ClientRequest, ClientResponse,
     DriverRequest, DriverResponse,
     RouterRequest, RouterResponse,
+    ToClientRequest, ToClientResponse,
     RunJobRequestParams,
     JobUpdateRequestParams,
     //JobUpdateRequestBlob,
@@ -26,14 +27,18 @@ wit_bindgen::generate!({
 });
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
+#[serde(untagged)]
 enum Req {
     ClientRequest(ClientRequest),
     DriverRequest(DriverRequest),
+    ToClientRequest(ToClientRequest),
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
+#[serde(untagged)]
 enum Res {
     RouterResponse(RouterResponse),
+    ToClientResponse(ToClientResponse),
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize, process_macros::SerdeJsonInto)]
@@ -239,7 +244,17 @@ fn handle_driver_request(
                 .body(DriverResponse::SetIsAvailable)
                 .send()?;
         }
-        DriverRequest::JobUpdate(JobUpdateRequestParams { ref job_id, ref is_final, .. }) => {
+    }
+    Ok(())
+}
+
+fn handle_to_client_request(
+    source: &Address,
+    to_client_request: &ToClientRequest,
+    state: &mut State,
+) -> anyhow::Result<()> {
+    match to_client_request {
+        ToClientRequest::JobUpdate(JobUpdateRequestParams { ref job_id, ref is_final, .. }) => {
             let Some((job_source, expected_job_id)) = state.outstanding_jobs.get(source.node()) else {
                 return Err(anyhow::anyhow!("provider sent back {job_id} but no record here"));
             };
@@ -247,7 +262,7 @@ fn handle_driver_request(
                 println!("job_id != expected_job_id: this should never occur! provider gave us wrong job back");
             }
             Request::to(job_source)
-                .body(driver_request)
+                .body(to_client_request)
                 .inherit(true)
                 .send()?;
             // TODO: log sigs
@@ -256,7 +271,7 @@ fn handle_driver_request(
                 state.save()?;
             }
             Response::new()
-                .body(DriverResponse::JobUpdate)
+                .body(ToClientResponse::JobUpdate)
                 .send()?;
         }
     }
@@ -285,10 +300,12 @@ fn handle_router_response(
                 //    .body(serde_json::to_vec(&MemberRequest::JobTaken { job_id })?)
                 //    .send()?;
                 //state.save()?;
+                println!("{source} didnt find job_query for {job_id}");
                 return Ok(());
             };
             if !is_ready {
                 // TODO: reprimand fake ready member?
+                println!("{source} not ready");
                 job_query.num_rejections += 1;
                 if job_query.num_rejections >= job_query.num_queried {
                     // no one available to serve job
@@ -305,8 +322,18 @@ fn handle_router_response(
                 state.save()?;
                 return Ok(());
             }
+            println!("{source} accepts job");
             serve_job(source, &job_source, job_id, job_query.job, state)?;
         }
+    }
+    Ok(())
+}
+
+fn handle_to_client_response(
+    to_client_response: &ToClientResponse,
+) -> anyhow::Result<()> {
+    match to_client_response {
+        ToClientResponse::JobUpdate => {}
     }
     Ok(())
 }
@@ -359,6 +386,11 @@ fn handle_message(
                 driver_request,
                 state,
             ),
+            Req::ToClientRequest(ref to_client_request) => handle_to_client_request(
+                message.source(),
+                to_client_request,
+                state,
+            ),
         };
     }
 
@@ -370,12 +402,15 @@ fn handle_message(
             router_response,
             state,
         ),
+        Res::ToClientResponse(ref to_client_response) => handle_to_client_response(
+            to_client_response,
+        ),
     }
 }
 
 call_init!(init);
 fn init(our: Address) {
-    println!("begin");
+    println!("{}: begin", our.process());
 
     let mut state = State::load();
 

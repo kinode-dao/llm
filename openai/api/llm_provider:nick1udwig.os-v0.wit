@@ -3,29 +3,30 @@ interface pkg {
     type model-name = string;
     type error-message = string;
 
-    /// client (external) sends to router
+    /// client (external) sends to local driver.
+    /// local driver serves if connected to local llm,
+    /// else forwards to router.
+    /// router receives from driver.
     variant client-request {
         run-job(run-job-request-params),
     }
 
-    /// client (external) receives from router
+    /// client (external) receives from local driver.
+    /// client (external) receives from router.
     variant client-response {
         run-job(result<job-id, error-message>),
     }
 
     /// driver sends to router
     variant driver-request {
+        // TODO: use local-driver
         set-is-available(tuple<bool, model-name>),
-        /// job-update-request-blob in lazy-load-blob
-        job-update(job-update-request-params),
     }
 
     /// driver receives from router
     variant driver-response {
         /// ack
         set-is-available,
-        /// ack
-        job-update,
     }
 
     /// router sends to driver
@@ -40,14 +41,21 @@ interface pkg {
         query-ready(bool),
     }
 
+    /// local driver sends to client (external).
+    /// driver sends to router.
     /// router sends to client (external)
-    variant router-client-request {
+    // TODO: should we skip the router in the driver -> router -> client chain?
+    //       pro: less bucket brigading
+    //       con: router never notified about job completion
+    variant to-client-request {
         /// job-update-request-blob in lazy-load-blob
         job-update(job-update-request-params),
     }
 
+    /// local driver receives from client (external).
+    /// driver receives from router.
     /// router receives from client (external)
-    variant router-client-response {
+    variant to-client-response {
         /// ack
         job-update,
     }
@@ -68,12 +76,42 @@ interface pkg {
     //}
 }
 
+interface admin {
+    variant admin-request {
+        start-router,
+    }
+
+    variant admin-response {
+        start-router,
+    }
+}
+
 interface driver {
+    variant admin-request {
+        set-local-driver(local-driver)
+    }
+
+    variant admin-response {
+        set-provider
+    }
+
+    record local-driver {
+        model: string,
+        is-public: bool,
+    }
+
     use pkg.{
+        client-request,
+        client-response,
         driver-request,
         driver-response,
         router-request,
         router-response,
+        to-client-request,
+        to-client-response,
+        run-job-request-params,
+        job-update-request-params,
+        //job-update-request-blob,
     };
 }
 
@@ -85,12 +123,16 @@ interface router {
         driver-response,
         router-request,
         router-response,
+        to-client-request,
+        to-client-response,
         run-job-request-params,
         job-update-request-params,
+        //job-update-request-blob,
     };
 }
 
 world llm-provider-nick1udwig-dot-os-v0 {
+    import admin;
     import driver;
     import router;
     include process;

@@ -2,8 +2,11 @@
 resolver = "2"
 members = [
     "lccp/lccp",
+    "openai/admin",
+    "openai/driver",
     "openai/openai",
     "openai/router",
+    "openai/run_job",
 ]
 
 [profile.release]

@@ -12,11 +12,11 @@
             "http_client:distro:sys",
             "http_server:distro:sys"
         ],
-        "public": false
+        "public": true
     },
     {
-        "process_name": "router",
-        "process_wasm_path": "/router.wasm",
+        "process_name": "driver",
+        "process_wasm_path": "/driver.wasm",
         "on_exit": "Restart",
         "request_networking": true,
         "request_capabilities": [
