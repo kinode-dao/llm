@@ -20,11 +20,8 @@ pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
 
 wit_bindgen::generate!({
-    path: "wit",
-    world: "process",
-    exports: {
-        world: Component,
-    },
+    path: "target/wit",
+    world: "process-v0",
 });
 
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
