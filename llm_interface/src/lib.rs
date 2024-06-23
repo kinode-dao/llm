@@ -22,7 +22,7 @@ pub mod openai {
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
     pub struct EmbeddingRequest {
-        pub input: String,
+        pub input: Vec<String>,
         pub model: String,
     }
 
