@@ -39,10 +39,8 @@ pub struct OpenAiEmbeddingResponse {
 
 impl OpenAiEmbeddingResponse {
     pub fn to_embedding_response(&self) -> EmbeddingResponse {
-        let embedding_values: Vec<f32> = self.data[0]
-            .embedding
-            .iter()
-            .map(|&value| value as f32)
+        let embedding_values: Vec<Vec<f32>> = self.data.iter()
+            .map(|embedding_data| embedding_data.embedding.iter().map(|&value| value as f32).collect())
             .collect();
         EmbeddingResponse {
             embedding: embedding_values,
