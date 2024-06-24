@@ -197,7 +197,7 @@ pub mod openai {
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct EmbeddingResponse {
-        pub embedding: Vec<Vec<f32>>, 
+        pub embeddings: Vec<Vec<f32>>, 
     }
 
 }
