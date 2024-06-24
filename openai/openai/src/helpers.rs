@@ -43,7 +43,7 @@ impl OpenAiEmbeddingResponse {
             .map(|embedding_data| embedding_data.embedding.iter().map(|&value| value as f32).collect())
             .collect();
         EmbeddingResponse {
-            embedding: embedding_values,
+            embeddings: embedding_values,
         }
     }
 }
