@@ -9,6 +9,7 @@ pub mod openai {
     pub enum LLMRequest {
         RegisterOpenaiApiKey(RegisterApiKeyRequest),
         RegisterGroqApiKey(RegisterApiKeyRequest),
+        RegisterClaudeApiKey(RegisterApiKeyRequest),
         Embedding(EmbeddingRequest),
         OpenaiChat(ChatRequest),
         GroqChat(ChatRequest),
