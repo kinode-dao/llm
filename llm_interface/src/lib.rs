@@ -228,12 +228,6 @@ pub mod openai {
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
-    pub struct Usage {
-        pub input_tokens: i32,
-        pub output_tokens: i32,
-    }
-
-    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct EmbeddingResponse {
         pub embeddings: Vec<Vec<f32>>, 
     }
