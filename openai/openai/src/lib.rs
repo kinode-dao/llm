@@ -4,7 +4,7 @@ use kinode_process_lib::{
     http::{HttpClientAction, OutgoingHttpRequest},
     println, Address, LazyLoadBlob, ProcessId, Request, Response,
 };
-use llm_interface::openai::{ChatResponse, LLMRequest, LLMResponse, RegisterApiKeyRequest};
+use llm_interface::openai::{ChatResponse, LLMRequest, LLMResponse, RegisterApiKeyRequest, ClaudeChatResponse};
 use serde::Serialize;
 use std::{collections::HashMap, vec};
 
@@ -33,6 +33,7 @@ fn handle_response(context: &[u8]) -> anyhow::Result<()> {
     match context[0] {
         EMBEDDING_CONTEXT => handle_embedding_response()?,
         OPENAI_CHAT_CONTEXT | GROQ_CHAT_CONTEXT | CHAT_IMAGE_CONTEXT => handle_chat_response()?,
+        CLAUDE_CHAT_CONTEXT => handle_claude_chat_response()?,
         _ => {}
     }
 
@@ -58,6 +59,17 @@ fn handle_chat_response() -> anyhow::Result<()> {
         .send()?;
     Ok(())
 }
+
+fn handle_claude_chat_response() -> anyhow::Result<()> {
+    let bytes = get_blob().context("Couldn't get blob")?;
+    let claude_response = serde_json::from_slice::<ClaudeChatResponse>(bytes.bytes.as_slice())?;
+    let llm_response = LLMResponse::ClaudeChat(claude_response);
+    let _ = Response::new()
+        .body(serde_json::to_vec(&llm_response)?)
+        .send()?;
+    Ok(())
+}
+
 
 fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> {
     let request = serde_json::from_slice::<LLMRequest>(body)?;
