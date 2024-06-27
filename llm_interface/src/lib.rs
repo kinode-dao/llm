@@ -1,9 +1,8 @@
-
 pub mod openai {
+    use derive_builder::Builder;
     use serde::Deserialize;
     use serde::Serialize;
     use std::collections::HashMap;
-    use derive_builder::Builder;
 
     #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub enum LLMRequest {
@@ -136,7 +135,6 @@ pub mod openai {
         pub image_url: Option<ImageUrl>,
     }
 
-    
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
     pub struct ImageUrl {
         pub url: String,
@@ -181,7 +179,8 @@ pub mod openai {
         pub model: Option<String>,
         pub system_fingerprint: Option<String>,
         pub choices: Vec<Choice>,
-        pub usage: Option<Usage>,
+        #[serde(alias = "usage")]
+        pub usage: Option<OpenAIUsage>,
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -193,7 +192,13 @@ pub mod openai {
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
-    pub struct Usage {
+    pub struct ClaudeUsage {
+        pub input_tokens: i32,
+        pub output_tokens: i32,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct OpenAIUsage {
         pub prompt_tokens: i32,
         pub completion_tokens: Option<i32>,
         pub total_tokens: i32,
@@ -217,7 +222,8 @@ pub mod openai {
         pub stop_sequence: Option<String>,
         #[serde(rename = "type")]
         pub response_type: String,
-        pub usage: Usage,
+        #[serde(alias = "usage")]
+        pub usage: ClaudeUsage,
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -229,9 +235,8 @@ pub mod openai {
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
     pub struct EmbeddingResponse {
-        pub embeddings: Vec<Vec<f32>>, 
+        pub embeddings: Vec<Vec<f32>>,
     }
-
 }
 
 pub mod lccp {
