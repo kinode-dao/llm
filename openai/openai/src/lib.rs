@@ -23,6 +23,12 @@ wit_bindgen::generate!({
     world: "process-v0",
 });
 
+enum ApiKeyType {
+    OpenAI,
+    Groq,
+    Claude,
+}
+
 fn handle_response(context: &[u8]) -> anyhow::Result<()> {
     match context[0] {
         EMBEDDING_CONTEXT => handle_embedding_response()?,
@@ -58,11 +64,13 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
     let context = request_to_context(&request);
     match &request {
         LLMRequest::RegisterOpenaiApiKey(api_request) => {
-            register_openai_api_key(api_request, state)
+            register_api_key(api_request, state, ApiKeyType::OpenAI)
         }
-        LLMRequest::RegisterGroqApiKey(api_request) => register_groq_api_key(api_request, state),
+        LLMRequest::RegisterGroqApiKey(api_request) => {
+            register_api_key(api_request, state, ApiKeyType::Groq)
+        }
         LLMRequest::RegisterClaudeApiKey(api_request) => {
-            register_claude_api_key(api_request, state)
+            register_api_key(api_request, state, ApiKeyType::Claude)
         }
         LLMRequest::Embedding(embedding_request) => {
             let endpoint = format!("{}/embeddings", OPENAI_BASE_URL);
@@ -87,22 +95,28 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
     }
 }
 
-// TODO: Zena: Could we make this more generic?
-fn register_openai_api_key(
+fn register_api_key(
     api_request: &RegisterApiKeyRequest,
     state: &mut Option<State>,
+    key_type: ApiKeyType,
 ) -> anyhow::Result<()> {
     let api_key = &api_request.api_key;
     match state {
         Some(_state) => {
-            _state.openai_api_key = api_key.to_string();
+            match key_type {
+                ApiKeyType::OpenAI => _state.openai_api_key = api_key.to_string(),
+                ApiKeyType::Groq => _state.groq_api_key = api_key.to_string(),
+                ApiKeyType::Claude => _state.claude_api_key = api_key.to_string(),
+            }
             _state.save();
         }
         None => {
-            let _state = State {
-                openai_api_key: api_key.to_string(),
-                ..State::default()
-            };
+            let mut _state = State::default();
+            match key_type {
+                ApiKeyType::OpenAI => _state.openai_api_key = api_key.to_string(),
+                ApiKeyType::Groq => _state.groq_api_key = api_key.to_string(),
+                ApiKeyType::Claude => _state.claude_api_key = api_key.to_string(),
+            }
             _state.save();
             *state = Some(_state);
         }
@@ -113,55 +127,6 @@ fn register_openai_api_key(
     Ok(())
 }
 
-fn register_groq_api_key(
-    api_request: &RegisterApiKeyRequest,
-    state: &mut Option<State>,
-) -> anyhow::Result<()> {
-    let api_key = &api_request.api_key;
-    match state {
-        Some(_state) => {
-            _state.groq_api_key = api_key.to_string();
-            _state.save();
-        }
-        None => {
-            let _state = State {
-                groq_api_key: api_key.to_string(),
-                ..State::default()
-            };
-            _state.save();
-            *state = Some(_state);
-        }
-    }
-    let _ = Response::new()
-        .body(serde_json::to_vec(&LLMResponse::Ok)?)
-        .send();
-    Ok(())
-}
-
-fn register_claude_api_key(
-    api_request: &RegisterApiKeyRequest,
-    state: &mut Option<State>,
-) -> anyhow::Result<()> {
-    let api_key = &api_request.api_key;
-    match state {
-        Some(_state) => {
-            _state.claude_api_key = api_key.to_string();
-            _state.save();
-        }
-        None => {
-            let _state = State {
-                claude_api_key: api_key.to_string(),
-                ..State::default()
-            };
-            _state.save();
-            *state = Some(_state);
-        }
-    }
-    let _ = Response::new()
-        .body(serde_json::to_vec(&LLMResponse::Ok)?)
-        .send();
-    Ok(())
-}
 
 fn handle_generic_request<T: Serialize>(
     request_data: &T,
