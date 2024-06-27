@@ -13,11 +13,12 @@ pub const CHAT_IMAGE_CONTEXT: u8 = 4;
 // TODO: Zena: We should probably derive this through a trait at some point?
 pub fn request_to_context(request: &LLMRequest) -> u8 {
     match request {
-        LLMRequest::RegisterGroqApiKey(_) | LLMRequest::RegisterOpenaiApiKey(_) => REGISTER_API_KEY_CONTEXT,
+        LLMRequest::RegisterGroqApiKey(_) | LLMRequest::RegisterOpenaiApiKey(_) | LLMRequest::RegisterClaudeApiKey(_) => REGISTER_API_KEY_CONTEXT,
         LLMRequest::Embedding(_) => EMBEDDING_CONTEXT,
         LLMRequest::OpenaiChat(_) => OPENAI_CHAT_CONTEXT,
         LLMRequest::GroqChat(_) => GROQ_CHAT_CONTEXT,
         LLMRequest::ChatImage(_) => CHAT_IMAGE_CONTEXT,
+        LLMRequest::ClaudeChat(_) => CLAUDE_CHAT_CONTEXT,
     }
 }
 

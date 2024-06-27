@@ -4,9 +4,7 @@ use kinode_process_lib::{
     http::{HttpClientAction, OutgoingHttpRequest},
     println, Address, LazyLoadBlob, ProcessId, Request, Response,
 };
-use llm_interface::openai::{
-    ChatResponse, LLMRequest, LLMResponse, RegisterApiKeyRequest,
-};
+use llm_interface::openai::{ChatResponse, LLMRequest, LLMResponse, RegisterApiKeyRequest};
 use serde::Serialize;
 use std::{collections::HashMap, vec};
 
@@ -18,6 +16,7 @@ use helpers::*;
 
 pub const OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 pub const GROQ_BASE_URL: &str = "https://api.groq.com/openai/v1";
+pub const CLAUDE_BASE_URL: &str = "https://api.anthropic.com/v1";
 
 wit_bindgen::generate!({
     path: "target/wit",
@@ -58,8 +57,13 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
     let request = serde_json::from_slice::<LLMRequest>(body)?;
     let context = request_to_context(&request);
     match &request {
-        LLMRequest::RegisterOpenaiApiKey(api_request) => register_openai_api_key(api_request, state),
+        LLMRequest::RegisterOpenaiApiKey(api_request) => {
+            register_openai_api_key(api_request, state)
+        }
         LLMRequest::RegisterGroqApiKey(api_request) => register_groq_api_key(api_request, state),
+        LLMRequest::RegisterClaudeApiKey(api_request) => {
+            register_claude_api_key(api_request, state)
+        }
         LLMRequest::Embedding(embedding_request) => {
             let endpoint = format!("{}/embeddings", OPENAI_BASE_URL);
             handle_generic_request(embedding_request, state, context, &endpoint)
@@ -76,9 +80,17 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
             let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
             handle_generic_request(chat_image_request, state, context, &endpoint)
         }
+        LLMRequest::RegisterClaudeApiKey(api_request) => {
+            register_claude_api_key(api_request, state)
+        }
+        LLMRequest::ClaudeChat(chat_request) => {
+            let endpoint = format!("{}/messages", CLAUDE_BASE_URL);
+            handle_generic_request(chat_request, state, context, &endpoint)
+        }
     }
 }
 
+// TODO: Zena: Could we make this more generic?
 fn register_openai_api_key(
     api_request: &RegisterApiKeyRequest,
     state: &mut Option<State>,
@@ -98,7 +110,9 @@ fn register_openai_api_key(
             *state = Some(_state);
         }
     }
-    let _ = Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
+    let _ = Response::new()
+        .body(serde_json::to_vec(&LLMResponse::Ok)?)
+        .send();
     Ok(())
 }
 
@@ -121,7 +135,34 @@ fn register_groq_api_key(
             *state = Some(_state);
         }
     }
-    let _ = Response::new().body(serde_json::to_vec(&LLMResponse::Ok)?).send();
+    let _ = Response::new()
+        .body(serde_json::to_vec(&LLMResponse::Ok)?)
+        .send();
+    Ok(())
+}
+
+fn register_claude_api_key(
+    api_request: &RegisterApiKeyRequest,
+    state: &mut Option<State>,
+) -> anyhow::Result<()> {
+    let api_key = &api_request.api_key;
+    match state {
+        Some(_state) => {
+            _state.claude_api_key = api_key.to_string();
+            _state.save();
+        }
+        None => {
+            let _state = State {
+                claude_api_key: api_key.to_string(),
+                ..State::default()
+            };
+            _state.save();
+            *state = Some(_state);
+        }
+    }
+    let _ = Response::new()
+        .body(serde_json::to_vec(&LLMResponse::Ok)?)
+        .send();
     Ok(())
 }
 
@@ -142,16 +183,29 @@ fn handle_generic_request<T: Serialize>(
             .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
             .groq_api_key
             .clone(),
+        CLAUDE_CHAT_CONTEXT => state
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("State not initialized"))?
+            .claude_api_key
+            .clone(),
         _ => return Err(anyhow::anyhow!("Invalid context for API key")),
+    };
+    let headers = match context {
+        CLAUDE_CHAT_CONTEXT => HashMap::from_iter(vec![
+            ("Content-Type".to_string(), "application/json".to_string()),
+            ("x-api-key".to_string(), api_key),
+            ("anthropic-version".to_string(), "2023-06-01".to_string()),
+        ]),
+        _ => HashMap::from_iter(vec![
+            ("Content-Type".to_string(), "application/json".to_string()),
+            ("Authorization".to_string(), format!("Bearer {}", api_key)),
+        ]),
     };
     let outgoing_request = OutgoingHttpRequest {
         method: "POST".to_string(),
         version: None,
         url: endpoint.to_string(),
-        headers: HashMap::from_iter(vec![
-            ("Content-Type".to_string(), "application/json".to_string()),
-            ("Authorization".to_string(), format!("Bearer {}", api_key)),
-        ]),
+        headers,
     };
     let body = serde_json::to_vec(&HttpClientAction::Http(outgoing_request))?;
     let bytes = serialize_without_none(request_data)?;
