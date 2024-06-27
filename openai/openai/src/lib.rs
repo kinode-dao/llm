@@ -80,9 +80,6 @@ fn handle_request(body: &[u8], state: &mut Option<State>) -> anyhow::Result<()> 
             let endpoint = format!("{}/chat/completions", OPENAI_BASE_URL);
             handle_generic_request(chat_image_request, state, context, &endpoint)
         }
-        LLMRequest::RegisterClaudeApiKey(api_request) => {
-            register_claude_api_key(api_request, state)
-        }
         LLMRequest::ClaudeChat(chat_request) => {
             let endpoint = format!("{}/messages", CLAUDE_BASE_URL);
             handle_generic_request(chat_request, state, context, &endpoint)

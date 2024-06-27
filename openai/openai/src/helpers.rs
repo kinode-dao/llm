@@ -1,5 +1,5 @@
 use llm_interface::openai::EmbeddingResponse;
-use llm_interface::openai::Usage;
+use llm_interface::openai::OpenAIUsage;
 use llm_interface::openai::LLMRequest;
 use serde::Deserialize;
 use serde::Serialize;
@@ -9,6 +9,7 @@ pub const EMBEDDING_CONTEXT: u8 = 1;
 pub const OPENAI_CHAT_CONTEXT: u8 = 2;
 pub const GROQ_CHAT_CONTEXT: u8 = 3;
 pub const CHAT_IMAGE_CONTEXT: u8 = 4;
+pub const CLAUDE_CHAT_CONTEXT: u8 = 5;
 
 // TODO: Zena: We should probably derive this through a trait at some point?
 pub fn request_to_context(request: &LLMRequest) -> u8 {
@@ -35,7 +36,7 @@ pub struct OpenAiEmbeddingResponse {
     pub object: String,
     pub data: Vec<EmbeddingData>,
     pub model: String,
-    pub usage: Usage,
+    pub usage: OpenAIUsage,
 }
 
 impl OpenAiEmbeddingResponse {
