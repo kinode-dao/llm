@@ -13,6 +13,7 @@ pub mod openai {
         OpenaiChat(ChatRequest),
         GroqChat(ChatRequest),
         ChatImage(ChatImageRequest),
+        ClaudeChat(ClaudeChatRequest),
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
@@ -24,6 +25,15 @@ pub mod openai {
     pub struct EmbeddingRequest {
         pub input: Vec<String>,
         pub model: String,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
+    pub struct ClaudeChatRequest {
+        pub model: String,
+        pub messages: Vec<Message>,
+        #[builder(default)]
+        pub max_tokens: Option<i32>,
+        // Add other optional fields as needed
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq, Builder)]
@@ -193,6 +203,33 @@ pub mod openai {
         Ok,
         Embedding(EmbeddingResponse),
         Chat(ChatResponse),
+        ClaudeChat(ClaudeChatResponse),
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct ClaudeChatResponse {
+        pub content: Vec<Content>,
+        pub id: String,
+        pub model: String,
+        pub role: String,
+        pub stop_reason: String,
+        pub stop_sequence: Option<String>,
+        #[serde(rename = "type")]
+        pub response_type: String,
+        pub usage: Usage,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct Content {
+        #[serde(rename = "type")]
+        pub content_type: String,
+        pub text: String,
+    }
+
+    #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
+    pub struct Usage {
+        pub input_tokens: i32,
+        pub output_tokens: i32,
     }
 
     #[derive(Default, Serialize, Deserialize, Debug, Clone, PartialEq)]
