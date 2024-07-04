@@ -62,7 +62,14 @@ fn handle_chat_response() -> anyhow::Result<()> {
 
 fn handle_claude_chat_response() -> anyhow::Result<()> {
     let bytes = get_blob().context("Couldn't get blob")?;
-    let claude_response = serde_json::from_slice::<ClaudeChatResponse>(bytes.bytes.as_slice())?;
+    let claude_response = match serde_json::from_slice::<ClaudeChatResponse>(bytes.bytes.as_slice()) {
+        Ok(response) => response,
+        Err(e) => {
+            // Print the UTF-8 representation of the bytes
+            println!("Failed to deserialize Claude response. Raw bytes: {:?}", String::from_utf8_lossy(&bytes.bytes));
+            return Err(e.into());
+        }
+    };
     let llm_response = LLMResponse::ClaudeChat(claude_response);
     let _ = Response::new()
         .body(serde_json::to_vec(&llm_response)?)
@@ -189,7 +196,7 @@ fn handle_generic_request<T: Serialize>(
             ProcessId::new(Some("http_client"), "distro", "sys"),
         ))
         .body(body)
-        .expects_response(30)
+        .expects_response(60)
         .context(vec![context])
         .blob(LazyLoadBlob {
             mime: Some("application/json".to_string()),
